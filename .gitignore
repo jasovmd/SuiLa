@@ -1,0 +1,13 @@
+backend/data/
+backend/.pytest_cache/
+**/.pytest_cache/
+**/__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+*.apk
+SuiLa-APK/*.apk
+.idea/
+*.iml
+.DS_Store

@@ -1,0 +1,11 @@
+**/.git
+**/__pycache__
+**/.pytest_cache
+**/.dart_tool
+**/build
+**/*.apk
+**/.env
+**/SuiLa-APK
+**/firebase-hosting
+**/node_modules
+**/.idea

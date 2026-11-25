@@ -5,7 +5,8 @@
 **/build
 **/*.apk
 **/.env
-**/SuiLa-APK
-**/firebase-hosting
+**/APK
+**/APP
+**/ESP
 **/node_modules
 **/.idea

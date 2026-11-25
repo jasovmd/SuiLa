@@ -10,7 +10,7 @@ COPY backend/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY backend ./backend
-COPY SuiLa-LINE ./SuiLa-LINE
+COPY LINE ./LINE
 
 WORKDIR /suila/backend
 

@@ -1,7 +1,4 @@
-"""SuiLa77 phone app routes — thin adapters over existing SQLite / LINE store.
-
-ESP keeps /api/intake and /api/heartbeat. The Capacitor app uses these paths
-from BACKEND.md. One default device; no login cookies required.
+"""Phone app routes over SQLite / LINE store. ESP keeps /api/intake and /api/heartbeat.
 """
 
 from __future__ import annotations
@@ -15,8 +12,11 @@ from urllib.parse import quote
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, Request, Response
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
+import urllib.error
+import urllib.parse
+import urllib.request
 
 from .analysis import analyze
 from .db import connect
@@ -305,8 +305,61 @@ class AuthSessionIn(BaseModel):
     name: str = ""
 
 
+class LineAuthIn(BaseModel):
+    code: str = Field(min_length=1, max_length=256)
+    redirectUri: str = Field(min_length=1, max_length=512)
+
+
 def _caller_uid(request: Request) -> str:
     return (request.headers.get("x-suila-uid") or "").strip()[:128]
+
+
+def _line_login_channel() -> tuple[str, str]:
+    channel_id = (
+        os.getenv("LINE_LOGIN_CHANNEL_ID")
+        or os.getenv("LINE_CHANNEL_ID")
+        or ""
+    ).strip()
+    channel_secret = (
+        os.getenv("LINE_LOGIN_CHANNEL_SECRET")
+        or os.getenv("LINE_CHANNEL_SECRET")
+        or ""
+    ).strip()
+    return channel_id, channel_secret
+
+
+def _http_form(url: str, data: dict[str, str]) -> dict:
+    body = urllib.parse.urlencode(data).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=12) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def _http_json(url: str, token: str) -> dict:
+    req = urllib.request.Request(
+        url,
+        headers={"Authorization": f"Bearer {token}"},
+        method="GET",
+    )
+    with urllib.request.urlopen(req, timeout=12) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def _bind_line_self(uid: str, name: str) -> None:
+    try:
+        import store
+
+        store.init_tables()
+        store.upsert_elder(uid, name)
+        if uid and not uid.startswith(("google-", "phone-", "line-local-", "m-", "local-")):
+            store.ensure_self(DEVICE_ID, uid, name)
+    except Exception:
+        pass
 
 
 @router.post("/auth/session")
@@ -317,14 +370,86 @@ def post_auth_session(body: AuthSessionIn):
         _put(conn, "auth_provider", body.provider)
         if body.phone:
             _put(conn, "auth_phone", body.phone)
-    try:
-        import store
-
-        store.init_tables()
-        store.upsert_elder(body.uid, body.name)
-    except Exception:
-        pass
+    name = (body.name or "").strip()
+    _bind_line_self(body.uid, name)
+    if body.provider == "line" and name:
+        with connect() as conn:
+            profile = _json_get(conn, "profile", {})
+            if isinstance(profile, dict) and not str(profile.get("name") or "").strip():
+                profile = {**profile, "name": name[:32]}
+                _json_put(conn, "profile", profile)
+                _put(conn, f"name:{DEVICE_ID}", name[:32])
     return {"ok": True, "uid": body.uid}
+
+
+@router.get("/auth/line/callback")
+def line_login_callback(code: str = "", state: str = "", error: str = ""):
+    """LINE Login redirects here; bounce into the Android app with the auth code."""
+    if error or not code:
+        target = "com.suila.app://line-login?error=denied"
+    else:
+        query = urllib.parse.urlencode({"code": code, "state": state or ""})
+        target = f"com.suila.app://line-login?{query}"
+    html = (
+        "<!doctype html><meta charset='utf-8'>"
+        "<title>水啦</title>"
+        "<p style='font-size:22px;text-align:center;margin-top:48px'>正在回到水啦…</p>"
+        f"<script>location.replace({json.dumps(target)})</script>"
+        f"<p style='text-align:center'><a href={json.dumps(target)}>若沒有自動開啟，點這裡</a></p>"
+    )
+    return HTMLResponse(html)
+
+
+@router.post("/auth/line")
+def post_auth_line(body: LineAuthIn):
+    """Exchange a LINE Login code for the user's LINE profile, then bind this phone."""
+    channel_id, channel_secret = _line_login_channel()
+    if not channel_id or not channel_secret:
+        raise HTTPException(status_code=503, detail="line login not configured")
+    try:
+        token = _http_form(
+            "https://api.line.me/oauth2/v2.1/token",
+            {
+                "grant_type": "authorization_code",
+                "code": body.code.strip(),
+                "redirect_uri": body.redirectUri.strip(),
+                "client_id": channel_id,
+                "client_secret": channel_secret,
+            },
+        )
+        access = str(token.get("access_token") or "")
+        if not access:
+            raise HTTPException(status_code=400, detail="line token missing")
+        profile = _http_json("https://api.line.me/v2/profile", access)
+    except HTTPException:
+        raise
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="ignore")[:200]
+        raise HTTPException(status_code=400, detail=detail or "line auth failed") from exc
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="line auth failed") from exc
+
+    uid = str(profile.get("userId") or "").strip()
+    name = str(profile.get("displayName") or "").strip()[:32]
+    if not uid:
+        raise HTTPException(status_code=400, detail="line profile missing")
+
+    with connect() as conn:
+        _put(conn, "auth_uid", uid)
+        _put(conn, "auth_provider", "line")
+        profile_row = _json_get(conn, "profile", {})
+        if isinstance(profile_row, dict):
+            if name and not str(profile_row.get("name") or "").strip():
+                profile_row = {**profile_row, "name": name}
+                _json_put(conn, "profile", profile_row)
+                _put(conn, f"name:{DEVICE_ID}", name)
+    _bind_line_self(uid, name)
+    return {
+        "uid": uid,
+        "displayName": name,
+        "accessToken": access,
+        "provider": "line",
+    }
 
 
 @router.delete("/auth/account")
@@ -579,28 +704,36 @@ def get_messages(request: Request):
 
 
 @router.get("/messages/{message_id}/audio")
-def get_message_audio(message_id: str):
+def get_message_audio(message_id: str, lang: str = ""):
     safe = "".join(ch for ch in message_id if ch.isalnum() or ch in "-_")
     if not safe or safe != message_id:
         raise HTTPException(status_code=404, detail="not found")
-    with connect() as conn:
-        messages = _json_get(conn, "voice_messages", [])
-    path_name = ""
-    if isinstance(messages, list):
-        for item in messages:
-            if isinstance(item, dict) and item.get("id") == message_id:
-                path_name = str(item.get("audioPath") or "")
-                break
-    if not path_name:
-        # Fallback: any extension saved for this id.
-        matches = list(VOICE_DIR.glob(f"{safe}.*")) if VOICE_DIR.exists() else []
-        if not matches:
-            raise HTTPException(status_code=404, detail="not found")
-        file_path = matches[0]
-    else:
-        file_path = VOICE_DIR / Path(path_name).name
+    target_lang = (lang or "").strip()
+    if target_lang:
+        from .voice_translate import translated_path
+
+        file_path = translated_path(safe, target_lang)
         if not file_path.is_file():
-            raise HTTPException(status_code=404, detail="not found")
+            raise HTTPException(status_code=404, detail="translation missing")
+    else:
+        with connect() as conn:
+            messages = _json_get(conn, "voice_messages", [])
+        path_name = ""
+        if isinstance(messages, list):
+            for item in messages:
+                if isinstance(item, dict) and item.get("id") == message_id:
+                    path_name = str(item.get("audioPath") or "")
+                    break
+        if not path_name:
+            matches = list(VOICE_DIR.glob(f"{safe}.*")) if VOICE_DIR.exists() else []
+            matches = [p for p in matches if p.suffix.lower() != ".json" and ".zh-" not in p.name and ".en." not in p.name and ".nan-" not in p.name]
+            if not matches:
+                raise HTTPException(status_code=404, detail="not found")
+            file_path = matches[0]
+        else:
+            file_path = VOICE_DIR / Path(path_name).name
+            if not file_path.is_file():
+                raise HTTPException(status_code=404, detail="not found")
     media = "audio/mp4"
     suffix = file_path.suffix.lower()
     if suffix == ".mp3":
@@ -612,6 +745,28 @@ def get_message_audio(message_id: str):
     elif suffix in {".m4a", ".mp4"}:
         media = "audio/mp4"
     return FileResponse(file_path, media_type=media)
+
+
+class TranslateIn(BaseModel):
+    lang: str = Field(min_length=2, max_length=16)
+
+
+@router.post("/messages/{message_id}/translate")
+def translate_message(message_id: str, body: TranslateIn):
+    """Whisper + translate + TTS. Result is cached on disk for later plays."""
+    try:
+        from .voice_translate import ensure_translation
+
+        result = ensure_translation(message_id, body.lang.strip())
+        return result
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="translate failed") from exc
 
 
 @router.post("/messages/{message_id}/played")

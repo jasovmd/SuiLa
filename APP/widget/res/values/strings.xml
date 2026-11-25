@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name">水啦</string>
+    <string name="widget_title">今天喝了</string>
+    <string name="widget_loading">讀取中…</string>
+    <string name="widget_offline">連線失敗</string>
+    <string name="widget_desc">沒有打開 App 也能看到今天喝了多少水</string>
+</resources>

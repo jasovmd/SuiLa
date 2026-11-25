@@ -16,10 +16,10 @@ from .timeutil import day_bounds_utc, day_in_taipei, now_utc, parse_iso, to_iso
 
 def _line_root() -> Path:
     here = Path(__file__).resolve()
-    for candidate in (here.parents[2] / "SuiLa-LINE", here.parents[1] / "SuiLa-LINE"):
+    for candidate in (here.parents[2] / "LINE", here.parents[1] / "LINE"):
         if candidate.is_dir():
             return candidate
-    return here.parents[2] / "SuiLa-LINE"
+    return here.parents[2] / "LINE"
 
 
 _LINE_ROOT = _line_root()

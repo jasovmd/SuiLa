@@ -1,5 +1,4 @@
 backend/data/
-backend/.pytest_cache/
 **/.pytest_cache/
 **/__pycache__/
 *.pyc
@@ -7,7 +6,11 @@ backend/.pytest_cache/
 .env.*
 !.env.example
 *.apk
-SuiLa-APK/*.apk
+APK/*.apk
 .idea/
 *.iml
 .DS_Store
+APP/node_modules/
+APP/dist/
+APP/android/.gradle/
+APP/ios/App/Pods/

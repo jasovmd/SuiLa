@@ -52,15 +52,15 @@ def add_time(conn, hhmm: str) -> list[str]:
 
 
 def tick(device_id: str = "suila-esp32c3-01") -> None:
-    """交給 SuiLa-LINE 的固定提醒。這裡不呼叫 LINE。"""
+    """交給 LINE/notify 的固定提醒。"""
     here = Path(__file__).resolve()
     line_root = next(
         (
             candidate
-            for candidate in (here.parents[2] / "SuiLa-LINE", here.parents[1] / "SuiLa-LINE")
+            for candidate in (here.parents[1] / "LINE", here.parents[2] / "LINE")
             if candidate.is_dir()
         ),
-        here.parents[2] / "SuiLa-LINE",
+        here.parents[1] / "LINE",
     )
     if str(line_root) not in sys.path:
         sys.path.insert(0, str(line_root))

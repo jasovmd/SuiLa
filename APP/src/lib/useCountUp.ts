@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 
-/**
- * A number that counts smoothly to `target` instead of jumping, for readouts.
- * Phones set to reduce motion get the new number straight away.
- */
+
 export function useCountUp(target: number, durationMs = 600): number {
   const [shown, setShown] = useState(target)
   const from = useRef(target)

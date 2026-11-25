@@ -107,7 +107,6 @@ async function writeLine(line: string) {
   await BleClient.write(bleId, SERVICE, RX, bytesToView(bytes))
 }
 
-/** Look for a powered base advertising as SuiLa-xxxx. */
 export async function scanBases(ms = 8000): Promise<FoundBase[]> {
   await ensureBle()
   const found = new Map<string, FoundBase>()
@@ -121,7 +120,6 @@ export async function scanBases(ms = 8000): Promise<FoundBase[]> {
   return [...found.values()]
 }
 
-/** Connect, then prove this phone knows the shared provisioning secret. */
 export async function connectBase(base: FoundBase) {
   await endProvision()
   bus = new LineBus()

@@ -2,7 +2,7 @@ import { lowBatteryPercent, type DeviceStatus } from "../data/mock"
 import { useT } from "../i18n"
 import { BatteryIcon, CheckCircleIcon, WarningIcon } from "./Icons"
 
-/** Connection, battery and waiting records of the base, as icon + text lines. */
+
 export function DeviceStatusLines({ device }: { device: DeviceStatus }) {
   const t = useT()
 

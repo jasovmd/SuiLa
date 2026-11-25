@@ -1,10 +1,10 @@
-// Every piece of text the app shows in 繁體中文, including aria labels,
-// mock names, dates, times and units. Components never contain text.
+
+
 
 const pad2 = (value: number) => String(value).padStart(2, "0")
 
-// shortcut: anything not from today is labelled 昨天; the mock data only
-// covers two days. Needs real dates once older items are shown.
+
+
 const clock = (hour: number, minute: number) => {
   const period =
     hour < 6 ? "凌晨" : hour < 12 ? "上午" : hour === 12 ? "中午" : "下午"
@@ -29,6 +29,7 @@ export const zhTW = {
   nav: {
     aria: "主要分頁",
     water: "喝水",
+    band: "手環",
     family: "家人",
     my: "我的",
     newMessages: (count: number) => `${count} 則新留言`,
@@ -189,10 +190,11 @@ export const zhTW = {
     nightMute: "夜間靜音",
     device: "底座裝置",
     habits: "習慣分析",
+    band: "手環",
     proTag: "Premium",
     about: "關於我們",
     proTitle: "升級水啦 Premium",
-    proSubtitle: "解鎖習慣分析、連結更多家人",
+    proSubtitle: "解鎖習慣分析、手環連結與更多家人",
     freePlan: "免費版",
     settings: "設置",
     language: "介面語言",
@@ -220,6 +222,8 @@ export const zhTW = {
     translated: "翻譯",
     translating: "翻譯中…",
     translateFailed: "翻譯失敗，請再試一次",
+    translateBusy: "翻譯服務忙碌中，請稍後再試",
+    playsInVoiceLang: "語音語言相同就播原音；不同才翻譯。",
   },
   reminders: {
     title: "提醒設定",
@@ -297,7 +301,8 @@ export const zhTW = {
     forgetBody: "過去 7 天，這個時段的喝水紀錄最少。",
     addReminder: "新增提醒時間",
     notEnough: "紀錄還不夠，過幾天再來看看。",
-    adviceTitle: "分析建議",
+    adviceTitle: "AI 完整分析",
+    adviceLoading: "正在為你整理分析…",
     adviceLabel: "僅供提醒，不是醫療建議。",
     adviceMissed: (missed: number, days: number, goal: number) =>
       `過去 ${days} 天，有 ${missed} 天沒有達到你自己設定的目標（${goal} 毫升）。`,
@@ -435,9 +440,30 @@ export const zhTW = {
   },
   about: {
     title: "關於我們",
-    description:
-      "水啦是放在水瓶下面的智慧底座，搭配手機 App 使用。喝完水把水瓶放回去，它會自動記下喝了多少；太久沒喝水時，會用柔和的燈光提醒。",
+    featuresTitle: "水啦可以做什麼",
+    features: [
+      "智慧底座自動記錄每次喝水量",
+      "手機查看今日進度與過去紀錄",
+      "提醒與夜間靜音，避免半夜打擾",
+      "家人透過 LINE 傳送語音關心",
+      "Premium：AI 習慣分析與手環連結",
+    ],
+    contactTitle: "聯絡我們",
+    contactBody: "有問題或想了解更多，歡迎加入水啦 LINE 官方帳號。",
+    lineButton: "加入 LINE 官方帳號",
     demoTitle: "課程專題示範版",
     demoBody: "這是創業課程的專題作品，畫面中的資料都是示範用的。",
+  },
+  band: {
+    title: "手環",
+    heroBody: "連上手環後，可依手環功能提醒你，例如心跳過快、血氧過低。",
+    deviceName: "藍牙手環",
+    idle: "尚未連接",
+    scanning: "搜尋中…",
+    linked: "已連接",
+    linkedName: (name: string) => `目前連接：${name}`,
+    connect: "連接手環",
+    disconnect: "解除連接",
+    note: "目前為示範連線，真實同步之後會再開放。",
   },
 }

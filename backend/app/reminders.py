@@ -52,7 +52,6 @@ def add_time(conn, hhmm: str) -> list[str]:
 
 
 def tick(device_id: str = "suila-esp32c3-01") -> None:
-    """交給 LINE/notify 的固定提醒。"""
     here = Path(__file__).resolve()
     line_root = next(
         (

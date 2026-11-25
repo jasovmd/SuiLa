@@ -5,7 +5,6 @@ from pathlib import Path
 
 
 def load_env(path: Path) -> None:
-    """讀取 .env。不覆蓋已存在的環境變數，也不把內容寫進日誌。"""
     if not path.is_file():
         return
     for raw in path.read_text(encoding="utf-8").splitlines():

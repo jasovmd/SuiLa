@@ -3,7 +3,7 @@ import { createPortal } from "react-dom"
 
 export type AppSelectOption = { value: string; label: string }
 
-/** In-app picker sheet — portaled to body so swipe transforms never clip it. */
+
 export function AppSelect({
   value,
   options,

@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 from .analysis import analyze
 from .db import connect, init_db
+from .persist import mark_dirty, restore_on_startup, start_background as start_persist
 from .phone_api import router as phone_router
 from .reminders import add_time, get_times, start_background
 from .timeutil import day_bounds_utc, day_in_taipei, now_utc, parse_iso, to_iso
@@ -59,8 +60,17 @@ class GoalIn(BaseModel):
     daily_goal_ml: int = Field(ge=100, le=10000)
 
 
+@app.middleware("http")
+async def _persist_after_writes(request, call_next):
+    response = await call_next(request)
+    if request.method in ("POST", "PUT", "PATCH", "DELETE") and response.status_code < 500:
+        mark_dirty()
+    return response
+
+
 @app.on_event("startup")
 def startup() -> None:
+    restore_on_startup()
     init_db()
     load_env(_LINE_ROOT / ".env")
     try:
@@ -71,6 +81,7 @@ def startup() -> None:
         pass
     register(app)
     start_background()
+    start_persist()
 
 
 @app.get("/api/health")
@@ -251,7 +262,6 @@ def device_status(device_id: str):
             "message": "",
         }
     last = parse_iso(row["last_seen_at"])
-    # ESP 心跳約 15 秒；允許偶發漏打，約 3 次才判離線。未來的時間不算在線。
     age = (now_utc() - last).total_seconds()
     online = 0 <= age <= 45
     return {
@@ -278,19 +288,12 @@ def put_device_name(device_id: str, body: DeviceNameIn):
 
 
 class SimIn(BaseModel):
-    """grams=設定杯重；drink_ml=本次喝掉的克數（記入飲水，杯重自動扣除）。"""
-
     grams: float | None = Field(default=None, ge=0, le=10000)
     drink_ml: int | None = Field(default=None, ge=1, le=5000)
 
 
 @app.post("/api/devices/{device_id}/sim")
 def post_sim(device_id: str, body: SimIn):
-    """
-    - 只帶 grams：設定杯中重量（滿杯／空杯），不計飲水
-    - 帶 drink_ml：今日 +drink_ml，杯中剩餘 = 上次重量 - drink_ml
-      例：滿杯 2000 → 喝一口 300 → 剩餘 1700、今日 +300
-    """
     if body.grams is None and body.drink_ml is None:
         raise HTTPException(status_code=400, detail="需要 grams 或 drink_ml")
 
@@ -335,7 +338,6 @@ def post_sim(device_id: str, body: SimIn):
 
 @app.get("/api/home")
 def home_summary(device_id: str = Query(default="suila-esp32c3-01")):
-    """今日頁單次彙總，減少 APP 連線次數。"""
     daily = daily_intake(day=None, device_id=device_id)
     goal = get_goal()
     status = device_status(device_id)

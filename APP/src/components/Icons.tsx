@@ -26,7 +26,7 @@ export function CalendarIcon() {
   )
 }
 
-export type NavigationIconType = "water" | "social" | "profile"
+export type NavigationIconType = "water" | "band" | "social" | "profile"
 
 export function NavigationIcon({ type }: { type: NavigationIconType }) {
   if (type === "water") {
@@ -35,6 +35,31 @@ export function NavigationIcon({ type }: { type: NavigationIconType }) {
         <path
           d="M12 3S6.5 9.3 6.5 14a5.5 5.5 0 0 0 11 0C17.5 9.3 12 3 12 3Z"
           fill="currentColor"
+        />
+      </svg>
+    )
+  }
+
+  if (type === "band") {
+    return (
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+        <rect
+          x="7"
+          y="2.5"
+          width="10"
+          height="19"
+          rx="5"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <rect
+          x="9.2"
+          y="8"
+          width="5.6"
+          height="5.6"
+          rx="2.2"
+          stroke="currentColor"
+          strokeWidth="1.8"
         />
       </svg>
     )
@@ -245,6 +270,31 @@ export function InfoIcon() {
     <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
       <path d="M12 11v6M12 7.5v.1" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function BandIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+      <rect
+        x="7"
+        y="2.5"
+        width="10"
+        height="19"
+        rx="5"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <rect
+        x="9.2"
+        y="8"
+        width="5.6"
+        height="5.6"
+        rx="2.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
     </svg>
   )
 }

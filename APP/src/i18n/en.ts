@@ -1,5 +1,5 @@
-// Every piece of text the app shows in English. Same shape as zh-TW.ts.
-// Written as natural product copy, not word-for-word translation.
+
+
 
 import type { Translations } from "./index"
 
@@ -27,7 +27,6 @@ const plural = (count: number, one: string, many: string) =>
 const clock = (hour: number, minute: number) =>
   `${hour % 12 || 12}:${pad2(minute)} ${hour < 12 ? "AM" : "PM"}`
 
-// shortcut: anything not from today is labelled Yesterday; see zh-TW.ts.
 const dayTime = (date: Date, isToday: boolean) => {
   const time = clock(date.getHours(), date.getMinutes())
   return isToday ? time : `Yesterday ${time}`
@@ -46,6 +45,7 @@ export const en: Translations = {
   nav: {
     aria: "Main tabs",
     water: "Water",
+    band: "Band",
     family: "Family",
     my: "Me",
     newMessages: (count: number) => plural(count, "new message", "new messages"),
@@ -211,10 +211,11 @@ export const en: Translations = {
     nightMute: "Night mute",
     device: "Base",
     habits: "Habits",
+    band: "Band",
     proTag: "Premium",
     about: "About",
     proTitle: "Switch to SuiLa Premium",
-    proSubtitle: "Unlock habit analysis and more family members",
+    proSubtitle: "Unlock AI habits, band linking, and more family",
     freePlan: "Free plan",
     settings: "Settings",
     language: "Interface language",
@@ -242,6 +243,8 @@ export const en: Translations = {
     translated: "Translated",
     translating: "Translating…",
     translateFailed: "Translation failed. Please try again.",
+    translateBusy: "Translation is busy. Please try again in a moment.",
+    playsInVoiceLang: "Plays the original if it already matches your Voice language.",
   },
   reminders: {
     title: "Reminders",
@@ -321,7 +324,8 @@ export const en: Translations = {
       "Over the last 7 days, this is when the fewest drinks were logged.",
     addReminder: "Add a reminder time",
     notEnough: "Not enough records yet. Check back in a few days.",
-    adviceTitle: "Insights",
+    adviceTitle: "AI full analysis",
+    adviceLoading: "Preparing your analysis…",
     adviceLabel: "A reminder only, not medical advice.",
     adviceMissed: (missed: number, days: number, goal: number) =>
       `On ${missed} of the last ${days} days you didn't reach the goal you set (${goal} ml).`,
@@ -468,10 +472,31 @@ export const en: Translations = {
   },
   about: {
     title: "About",
-    description:
-      "SuiLa is a smart base that sits under your water bottle and works with this app. Put the bottle back after you drink and it logs how much you drank. If you go too long without drinking, it reminds you with a soft light.",
+    featuresTitle: "What SuiLa can do",
+    features: [
+      "Smart base that logs each drink automatically",
+      "See today’s progress and past records on your phone",
+      "Reminders with night mute so nights stay quiet",
+      "Family care through LINE voice messages",
+      "Premium: AI habit insights and band linking",
+    ],
+    contactTitle: "Contact us",
+    contactBody: "Questions or want to learn more? Join the SuiLa LINE official account.",
+    lineButton: "Add LINE official account",
     demoTitle: "Course project demo",
     demoBody:
       "This is a project for a startup course. Everything shown here is sample data.",
+  },
+  band: {
+    title: "Band",
+    heroBody: "After linking, your band can warn you—like a fast heart rate or low blood oxygen.",
+    deviceName: "Bluetooth band",
+    idle: "Not connected",
+    scanning: "Searching…",
+    linked: "Connected",
+    linkedName: (name: string) => `Connected: ${name}`,
+    connect: "Connect band",
+    disconnect: "Disconnect",
+    note: "Demo connection for now. Real sync comes later.",
   },
 }

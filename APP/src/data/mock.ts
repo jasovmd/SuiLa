@@ -1,7 +1,7 @@
-// All mock data in one place, shaped the way a real backend would send it.
-// Names and other visible words live in the translation files, keyed by id.
 
-/** A timestamp `daysAgo` days back at the given 24-hour time, as ISO text. */
+
+
+
 const at = (daysAgo: number, time: string) => {
   const [hours, minutes] = time.split(":").map(Number)
   const date = new Date()
@@ -10,15 +10,15 @@ const at = (daysAgo: number, time: string) => {
   return date.toISOString()
 }
 
-/** What the weighing base reports about itself. */
+
 export type DeviceStatus = {
-  /** False until the owner pairs a base for the first time. */
+  
   paired: boolean
   connected: boolean
   batteryPercent: number
-  /** Records stored on the base while offline, not yet sent to the phone. */
+  
   pendingSyncCount: number
-  /** Name shown on the pairing screen once a heartbeat is seen. */
+  
   name?: string
   deviceId?: string
 }
@@ -30,22 +30,22 @@ export const deviceStatus: DeviceStatus = {
   pendingSyncCount: 0,
 }
 
-/** Colors the light on the base can show. Their meanings are in the translation file. */
+
 export const baseLightColors = ["blue", "white", "red"] as const
 
-/** Values the hidden demo panel switches between. */
+
 export const demoValues = {
   normalBatteryPercent: 82,
   lowBatteryPercent: 15,
   offlinePendingCount: 3,
 }
 
-/** At or below this the app warns about the battery. */
+
 export const lowBatteryPercent = 20
 
 export type DrinkRecord = { id: string; time: string; amountMl: number }
 
-// Newest first. Today's six records add up to 1260 毫升.
+
 const recentRecords: DrinkRecord[] = [
   { id: "r01", time: at(0, "16:25"), amountMl: 210 },
   { id: "r02", time: at(0, "14:10"), amountMl: 220 },
@@ -61,9 +61,9 @@ const recentRecords: DrinkRecord[] = [
   { id: "r12", time: at(1, "07:30"), amountMl: 200 },
 ]
 
-// Days 2 to 41 ago are generated so the calendar has six weeks to show. The
-// numbers are the same every time (nothing random): 6 to 10 drinks a day of
-// 180 to 330 毫升, and now and then a day with nothing recorded.
+
+
+
 const earlierRecords: DrinkRecord[] = Array.from(
   { length: 40 },
   (_, index) => index + 2,
@@ -86,7 +86,6 @@ export type Brightness = "low" | "medium" | "high"
 
 export type ReminderSettings = {
   dailyGoalMl: number
-  /** 24-hour "HH:MM" times, earliest first. */
   times: string[]
   brightness: Brightness
 }
@@ -97,34 +96,26 @@ export const initialReminderSettings: ReminderSettings = {
   brightness: "medium",
 }
 
-/** Range and step of the daily goal, in 毫升. */
 export const goalLimits = { min: 500, max: 4000, step: 100 }
 
-/** One-tap amounts offered when adding water by hand, in 毫升. */
-/** Amount range for one drink record (slider + edit). */
 export const drinkAmountLimits = { min: 50, max: 4000, step: 10 }
 
 export type FamilyMember = {
   id: string
-  /** From the backend. The sample members have none: their names are in the translation files. */
   name?: string
   relation?: string
   color: string
 }
 
-/** Whether the owner has linked LINE when the demo starts. */
 export const initialLineConnected = true
 
-/** Whether the owner has Pro when the demo starts. */
 export const initialIsPro = false
 
 export type PremiumPlan = "monthly" | "yearly"
 export const premiumPlans: PremiumPlan[] = ["monthly", "yearly"]
 
-// shortcut: a placeholder; the backend creates the real LINE invite link.
 export const familyInviteLink = "https://example.com/suila/invite/demo"
 
-/** Family members allowed without Pro. */
 export const freeFamilyLimit = 2
 
 export const familyMembers: FamilyMember[] = [
@@ -138,12 +129,12 @@ export type VoiceMessage = {
   audioUrl?: string
   translatedAudioUrl?: string
   translatedText?: string
+  translatedLang?: string
   time: string
   durationSec: number
   played: boolean
 }
 
-// What each message says lives in the translation file, keyed by id.
 export const voiceMessages: VoiceMessage[] = [
   { id: "m1", from: "daughter", time: at(0, "12:40"), durationSec: 6, played: false },
   { id: "m2", from: "son", time: at(0, "09:05"), durationSec: 6, played: false },
@@ -163,7 +154,6 @@ export type ConditionId =
   | "none"
   | "other"
 
-/** Conditions where how much to drink is a medical question. */
 export const fluidSensitiveConditions: ConditionId[] = ["heart", "kidney"]
 
 export const conditionOptions: ConditionId[] = [
@@ -180,7 +170,6 @@ export const conditionOptions: ConditionId[] = [
   "other",
 ]
 
-/** Simple ranges for profile dropdowns. */
 export const heightOptionsCm = Array.from({ length: 61 }, (_, i) => String(140 + i))
 export const weightOptionsKg = Array.from({ length: 116 }, (_, i) => String(35 + i))
 
@@ -193,7 +182,6 @@ export type Profile = {
   conditions: ConditionId[]
 }
 
-/** The owner's name comes from the translation file, so it is passed in. */
 export const initialProfile = (name: string): Profile => ({
   name,
   heightCm: "162",
@@ -203,7 +191,6 @@ export const initialProfile = (name: string): Profile => ({
 
 export type NightMute = {
   enabled: boolean
-  /** 24-hour "HH:MM", in 30-minute steps. */
   start: string
   end: string
 }

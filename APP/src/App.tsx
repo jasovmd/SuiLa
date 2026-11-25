@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { api, type AppData } from "./api"
-import { BottomNav, familyPage, pageCount } from "./components/BottomNav"
+import {
+  BottomNav,
+  familyPage,
+  pageCount,
+  remapPage,
+} from "./components/BottomNav"
 import { LiquidFillLoader } from "./components/LiquidFillLoader"
 import { Toast } from "./components/Toast"
 import {
@@ -31,6 +36,7 @@ import { getVoiceLanguage, playReminderCue, voiceSpeechLang } from "./lib/voiceL
 import { useTabSwipe } from "./lib/useTabSwipe"
 import { useVoicePlayer } from "./lib/useVoicePlayer"
 import { AboutScreen } from "./screens/AboutScreen"
+import { BandScreen } from "./screens/BandScreen"
 import { AddWaterScreen } from "./screens/AddWaterScreen"
 import { EditRecordScreen } from "./screens/EditRecordScreen"
 import {
@@ -70,14 +76,14 @@ type Overlay =
   | "pro"
   | null
 
-/** How often to ask the backend for new voice messages while the app is open. */
+
 const messageCheckMs = 2_000
-/** How often to poll LINE binding while a connect code is on screen. */
+
 const lineBindCheckMs = 2_500
 
 type BootPhase = "boot" | "login" | "onboarding" | "loading" | "ready" | "failed"
 
-/** Session → onboarding → backend load → main app. */
+
 export default function App() {
   const t = useT()
   const [phase, setPhase] = useState<BootPhase>("boot")
@@ -256,7 +262,7 @@ function LoadedApp({
     0,
   )
   const [profile, setProfile] = useState(initial.profile)
-  // The sample owner's name follows the language, unless the user typed their own.
+  
   useEffect(() => {
     setProfile((current) =>
       defaultNames.includes(current.name)
@@ -266,7 +272,7 @@ function LoadedApp({
   }, [t])
   const [night, setNight] = useState(initial.nightMute)
   const [device, setDevice] = useState(initial.device)
-  // Where to go back to when the pairing page closes.
+  
   const [pairingBack, setPairingBack] = useState<Overlay>(null)
   const openPairing = () => {
     setPairingBack(overlay)
@@ -282,12 +288,32 @@ function LoadedApp({
   const [lineBindBusy, setLineBindBusy] = useState(false)
   const [members, setMembers] = useState(initial.members)
   const [isPro, setIsPro] = useState(initial.isPro)
-  const [advice] = useState(initial.advice)
+  const tabs = pageCount(isPro)
+  const familyTab = familyPage(isPro)
+  const [advice, setAdvice] = useState(initial.advice)
+  const [adviceLoading, setAdviceLoading] = useState(false)
+  const openHabits = () => {
+    if (!isPro) {
+      setOverlay("pro")
+      return
+    }
+    setOverlay("habits")
+    
+    if (advice) return
+    setAdviceLoading(true)
+    void api
+      .getAnalysis()
+      .then((result) => {
+        if (result.advice) setAdvice(result.advice)
+      })
+      .catch(() => {})
+      .finally(() => setAdviceLoading(false))
+  }
   const [inviteLink, setInviteLink] = useState<string | null>(null)
   const [familyCode, setFamilyCode] = useState<string | null>(null)
   const [familyCodeBusy, setFamilyCodeBusy] = useState(false)
   const [demoData, setDemoData] = useState<DemoData>("normal")
-  // Hidden way into the demo panel: five quick taps on the app name.
+  
   const brandTaps = useRef({ count: 0, last: 0 })
   const handleBrandTap = () => {
     const now = Date.now()
@@ -303,12 +329,12 @@ function LoadedApp({
   const [translatingId, setTranslatingId] = useState<string | null>(null)
   const voice = useVoicePlayer()
   const remindedSlots = useRef<Set<string>>(new Set())
-  // New messages only count while LINE is linked.
+  
   const newMessageCount = lineConnected
     ? messages.filter((message) => !message.played).length
     : 0
   const [toast, setToast] = useState<string | null>(null)
-  // Full-screen views slide out before they are removed.
+  
   const [closing, setClosing] = useState(false)
   const closeOverlay = useCallback(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -322,7 +348,7 @@ function LoadedApp({
     }, 200)
   }, [])
 
-  /** Runs a backend call; on failure the screen stays open and says so. */
+  
   const save = async <T,>(work: () => Promise<T>, done: (result: T) => void) => {
     try {
       done(await work())
@@ -331,19 +357,19 @@ function LoadedApp({
     }
   }
 
-  // Confirmation messages disappear on their own after a few seconds.
+  
   useEffect(() => {
     if (toast === null) return
     const timer = setTimeout(() => setToast(null), 4000)
     return () => clearTimeout(timer)
   }, [toast])
 
-  // The home widget reads this. The app can reach the server while it is open.
+  
   useEffect(() => {
     publishHomeWidget(todayWater, reminders.dailyGoalMl, device.connected)
   }, [todayWater, reminders.dailyGoalMl, device.connected])
 
-  // Local push for fixed times (works in background) + night mute.
+  
   useEffect(() => {
     void syncReminderNotifications({
       times: reminders.times,
@@ -353,7 +379,7 @@ function LoadedApp({
     })
   }, [reminders.times, night, t.reminders.pushTitle, t.reminders.pushFixed])
 
-  // Fixed speech (while open) + afternoon progress nudge (same pace rule as LINE).
+  
   useEffect(() => {
     const tick = () => {
       void maybeProgressNotification({
@@ -392,7 +418,6 @@ function LoadedApp({
     t.reminders.pushProgress,
   ])
 
-  // The base is "connected" only while its heartbeat is fresh, so re-check it.
   useEffect(() => {
     if (overlay === "demo") return
     const timer = window.setInterval(() => {
@@ -401,7 +426,6 @@ function LoadedApp({
     return () => window.clearInterval(timer)
   }, [overlay])
 
-  // Tell the server this phone's name, so a LINE voice can be addressed to this person.
   useEffect(() => {
     const name = profile.name.trim()
     if (!name) return
@@ -417,7 +441,6 @@ function LoadedApp({
     })
   }, [profile.name])
 
-  // While the app is open, ask now and then whether family sent something new.
   const unplayedRef = useRef(newMessageCount)
   unplayedRef.current = newMessageCount
   useEffect(() => {
@@ -435,14 +458,12 @@ function LoadedApp({
           if (family.lineConnected) setLineBindCode(null)
         },
         () => {
-          // A missed check is retried on the next round; nothing to tell the owner.
         },
       )
     }, messageCheckMs)
     return () => window.clearInterval(timer)
   }, [lineConnected, t])
 
-  // While a bind code is showing, poll until LINE self-binding succeeds.
   useEffect(() => {
     if (lineConnected || !lineBindCode) return
     const timer = window.setInterval(() => {
@@ -458,8 +479,19 @@ function LoadedApp({
     return () => window.clearInterval(timer)
   }, [lineConnected, lineBindCode, t])
 
-  const moveToPage = useCallback((page: number) => {
-    setCurrentPage(Math.max(0, Math.min(pageCount - 1, page)))
+  const moveToPage = useCallback(
+    (page: number) => {
+      setCurrentPage(Math.max(0, Math.min(tabs - 1, page)))
+    },
+    [tabs],
+  )
+
+  const setPro = useCallback((next: boolean) => {
+    setIsPro((was) => {
+      if (was === next) return was
+      setCurrentPage((page) => remapPage(page, was, next))
+      return next
+    })
   }, [])
 
   useAndroidBack({
@@ -470,8 +502,8 @@ function LoadedApp({
   })
 
   const shell = useRef<HTMLDivElement>(null)
-  const swipe = useTabSwipe(shell, currentPage, pageCount, moveToPage)
-  const hasSensitiveCondition = profile.conditions.some((condition) =>
+  const swipe = useTabSwipe(shell, currentPage, tabs, moveToPage)
+  const hasSensitiveCondition = (profile.conditions ?? []).some((condition) =>
     fluidSensitiveConditions.includes(condition),
   )
   const sampleText: Record<string, string> = t.family.messageText
@@ -479,25 +511,13 @@ function LoadedApp({
   return (
     <main className="app-shell">
       <div className={closing ? "page is-closing" : "page"} ref={shell}>
-        <header className="topbar">
-          <div
-            className="brand"
-            aria-label={t.brand.aria}
-            onClick={handleBrandTap}
-          >
-            <span className="brand-name">
-              {t.brand.name}
-              <small>{t.brand.latin}</small>
-            </span>
-          </div>
-        </header>
-
         <div className="swipe-window">
           <div className="swipe-track">
             <HomeScreen
               records={records}
               isPro={isPro}
-              onOpenHabits={() => setOverlay(isPro ? "habits" : "pro")}
+              onBrandTap={handleBrandTap}
+              onOpenHabits={openHabits}
               todayWater={todayWater}
               goalMl={reminders.dailyGoalMl}
               waterPercentage={waterPercentage}
@@ -510,8 +530,9 @@ function LoadedApp({
               }}
               newMessageCount={newMessageCount}
               onOpenCalendar={() => setOverlay("calendar")}
-              onOpenMessages={() => moveToPage(familyPage)}
+              onOpenMessages={() => moveToPage(familyTab)}
             />
+            {isPro && <BandScreen />}
             <FamilyScreen
               connected={lineConnected}
               members={members}
@@ -519,48 +540,81 @@ function LoadedApp({
               playingId={voice.playingId}
               translatingId={translatingId}
               onPlay={(message) => {
-                voice.play(
-                  message.id,
-                  sampleText[message.id] ?? "",
-                  t.common.speechLang,
-                  message.durationSec,
-                  message.audioUrl,
-                )
-                setMessages((current) =>
-                  current.map((item) =>
-                    item.id === message.id ? { ...item, played: true } : item,
-                  ),
-                )
-                api.markPlayed(message.id).catch(() => {})
-              }}
-              onPlayTranslated={(message) => {
                 const lang = getVoiceLanguage()
+                const finishPlayed = () => {
+                  setMessages((current) =>
+                    current.map((item) =>
+                      item.id === message.id ? { ...item, played: true } : item,
+                    ),
+                  )
+                  api.markPlayed(message.id).catch(() => {})
+                }
+                const playOriginal = () => {
+                  voice.play(
+                    message.id,
+                    sampleText[message.id] ?? "",
+                    t.common.speechLang,
+                    message.durationSec,
+                    message.audioUrl,
+                  )
+                  finishPlayed()
+                }
+                const playTranslated = (audioUrl: string | undefined, text: string) => {
+                  voice.play(
+                    `${message.id}-tr`,
+                    text || sampleText[message.id] || "",
+                    voiceSpeechLang(lang),
+                    message.durationSec,
+                    audioUrl,
+                  )
+                  finishPlayed()
+                }
+                if (message.translatedLang === lang && message.translatedText === "") {
+                  playOriginal()
+                  return
+                }
+                if (
+                  message.translatedAudioUrl &&
+                  message.translatedLang === lang &&
+                  message.translatedText
+                ) {
+                  playTranslated(message.translatedAudioUrl, message.translatedText)
+                  return
+                }
                 setTranslatingId(message.id)
                 api
                   .translateMessage(message.id, lang)
                   .then((result) => {
-                    voice.play(
-                      `${message.id}-tr`,
-                      result.text || sampleText[message.id] || "",
-                      voiceSpeechLang(lang),
-                      message.durationSec,
-                      result.audioUrl || undefined,
-                    )
                     setMessages((current) =>
                       current.map((item) =>
                         item.id === message.id
                           ? {
                               ...item,
                               played: true,
-                              translatedAudioUrl: result.audioUrl,
-                              translatedText: result.text,
+                              translatedAudioUrl: result.skipped
+                                ? undefined
+                                : result.audioUrl,
+                              translatedText: result.skipped ? "" : result.text,
+                              translatedLang: lang,
                             }
                           : item,
                       ),
                     )
-                    api.markPlayed(message.id).catch(() => {})
+                    if (result.skipped) playOriginal()
+                    else playTranslated(result.audioUrl, result.text)
                   })
-                  .catch(() => setToast(t.voicePlay.translateFailed))
+                  .catch((err: unknown) => {
+                    const detail =
+                      err && typeof err === "object" && "detail" in err
+                        ? String((err as { detail?: string }).detail || "")
+                        : ""
+                    setToast(
+                      detail.includes("rate_limit") || detail.includes("429")
+                        ? t.voicePlay.translateBusy
+                        : t.voicePlay.translateFailed,
+                    )
+                    playOriginal()
+                  })
                   .finally(() => setTranslatingId(null))
               }}
               onStop={voice.stop}
@@ -634,7 +688,7 @@ function LoadedApp({
               onOpenReminders={() => setOverlay("reminders")}
               onOpenNightMute={() => setOverlay("nightMute")}
               onOpenDevice={() => setOverlay("device")}
-              onOpenHabits={() => setOverlay(isPro ? "habits" : "pro")}
+              onOpenHabits={openHabits}
               onOpenAbout={() => setOverlay("about")}
               onOpenSettings={() => setOverlay("settings")}
               onOpenPro={() => setOverlay("pro")}
@@ -657,7 +711,6 @@ function LoadedApp({
               save(
                 () => api.addRecord(amountMl),
                 (record) => {
-                  // shortcut: new records go on top without re-sorting by time.
                   setRecords((current) => [record, ...current])
                   setToast(t.home.addedToast(amountMl))
                   closeOverlay()
@@ -778,6 +831,7 @@ function LoadedApp({
             records={records}
             goalMl={reminders.dailyGoalMl}
             advice={advice}
+            adviceLoading={adviceLoading}
             hasSensitiveCondition={hasSensitiveCondition}
             onAddReminder={() => setOverlay("reminders")}
             onClose={closeOverlay}
@@ -803,7 +857,6 @@ function LoadedApp({
           />
         )}
 
-        {/* The demo panel changes what this screen shows, not what the backend stores. */}
         {overlay === "demo" && (
           <DemoPanelScreen
             data={demoData}
@@ -843,8 +896,7 @@ function LoadedApp({
               }))
             }
             onLine={setLineConnected}
-            onPro={setIsPro}
-            // Reloading fetches everything again, so every screen goes back to the start.
+            onPro={setPro}
             onReset={() => window.location.reload()}
             onClose={closeOverlay}
           />
@@ -857,7 +909,7 @@ function LoadedApp({
               save(
                 () => api.subscribe(plan),
                 (result) => {
-                  setIsPro(result.isPro)
+                  setPro(result.isPro)
                   if (result.isPro) setToast(t.pro.upgradedToast)
                 },
               )
@@ -874,7 +926,6 @@ function LoadedApp({
           />
         )}
 
-        {/* Home's main action. Floats above the navigation, on the 喝水 tab only. */}
         <button
           className={`floating-action home-action ${currentPage === 0 ? "" : "is-away"}`.trim()}
           type="button"
@@ -889,6 +940,7 @@ function LoadedApp({
         <BottomNav
           slideHandlers={swipe}
           currentPage={currentPage}
+          isPro={isPro}
           newMessageCount={newMessageCount}
           onSelect={moveToPage}
         />

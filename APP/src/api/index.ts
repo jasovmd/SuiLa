@@ -1,9 +1,3 @@
-// The one place the app talks to the backend. Screens never fetch by themselves.
-//
-// With VITE_API_URL set (see .env.example), every call goes to the teammate's
-// backend over HTTP; BACKEND.md lists each call. Without it, the same calls
-// are answered from the sample data in src/data/mock.ts, so the demo works
-// with no backend at all.
 
 import {
   deviceStatus,
@@ -25,12 +19,12 @@ import {
   type ReminderSettings,
   type VoiceMessage,
 } from "../data/mock"
-// familyMembers is used by the mock API copy.
+
 import { zhTW } from "../i18n/zh-TW"
 import { getSession } from "../lib/auth"
 import { loadLineSelf, saveLineSelf } from "../lib/lineLink"
 
-/** Everything the app needs when it starts. */
+
 export type AppData = {
   records: DrinkRecord[]
   device: DeviceStatus
@@ -41,7 +35,7 @@ export type AppData = {
   members: FamilyMember[]
   messages: VoiceMessage[]
   isPro: boolean
-  /** Analysis text written by the backend (and its AI); null when it has none. */
+  
   advice: string | null
 }
 
@@ -55,19 +49,23 @@ export type SuilaApi = {
   saveProfile(profile: Profile): Promise<Profile>
   pairDevice(): Promise<DeviceStatus>
   getDevice(): Promise<DeviceStatus>
-  /** Starts linking LINE. Prefer showing `code` in-app; poll /family until connected. */
+  
   linkLine(): Promise<{ url: string | null; connected: boolean; code?: string | null }>
   getFamily(): Promise<{ lineConnected: boolean; members: FamilyMember[] }>
   createInvite(): Promise<string>
-  /** Family join code. The same code is reused for up to 24 hours. */
+  
   createFamilyCode(): Promise<{ code: string; expiresAt: string }>
   addMember(input: { name: string; relation: string }): Promise<FamilyMember>
   removeMember(id: string): Promise<void>
   getMessages(): Promise<VoiceMessage[]>
-  translateMessage(id: string, lang: string): Promise<{ audioUrl: string; text: string }>
+  translateMessage(
+    id: string,
+    lang: string,
+  ): Promise<{ audioUrl: string; text: string; skipped?: boolean; sourceLang?: string }>
   markPlayed(id: string): Promise<void>
   subscribe(plan: PremiumPlan): Promise<{ isPro: boolean }>
-  /** Optional: remember the signed-in uid on the backend. */
+  getAnalysis(): Promise<{ advice: string | null }>
+  
   registerSession?(session: {
     uid: string
     provider: string
@@ -78,7 +76,7 @@ export type SuilaApi = {
   deleteAccount(): Promise<void>
 }
 
-// ---------------------------------------------------------------- real backend
+
 
 const baseUrl: string = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "")
 
@@ -100,7 +98,6 @@ async function rememberLine(family: { lineConnected: boolean; members: FamilyMem
   return family
 }
 
-/** If the server forgot the binding, put back the LINE user this phone already linked. */
 async function restoreLine(family: { lineConnected: boolean; members: FamilyMember[] }) {
   if (family.lineConnected) return rememberLine(family)
   const saved = await loadLineSelf()
@@ -117,7 +114,6 @@ async function restoreLine(family: { lineConnected: boolean; members: FamilyMemb
   }
 }
 
-/** One HTTP call. Any non-2xx answer becomes an error the screen can report. */
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   const response = await fetch(baseUrl + path, {
     method,
@@ -149,7 +145,15 @@ const httpApi: SuilaApi = {
       device,
       reminders,
       nightMute,
-      profile,
+      profile: {
+        name: profile?.name ?? "",
+        heightCm: profile?.heightCm ?? "",
+        weightKg: profile?.weightKg ?? "",
+        conditions:
+          Array.isArray(profile?.conditions) && profile.conditions.length
+            ? profile.conditions
+            : ["none"],
+      },
       lineConnected: family.lineConnected,
       members: family.members,
       messages: messages.map((message) => ({
@@ -199,26 +203,53 @@ const httpApi: SuilaApi = {
     }))
   },
   async translateMessage(id, lang) {
-    const result = await call<{ audioUrl: string; text: string }>(
-      "POST",
-      `/messages/${encodeURIComponent(id)}/translate`,
-      { lang },
+    const response = await fetch(
+      `${baseUrl}/messages/${encodeURIComponent(id)}/translate`,
+      {
+        method: "POST",
+        credentials: "omit",
+        headers: await authHeaders(true),
+        body: JSON.stringify({ lang }),
+      },
     )
+    if (!response.ok) {
+      let detail = ""
+      try {
+        const body = (await response.json()) as { detail?: string }
+        detail = String(body.detail || "")
+      } catch {
+      }
+      const err = new Error(
+        detail || `${response.status} translate failed`,
+      ) as Error & { status?: number; detail?: string }
+      err.status = response.status
+      err.detail = detail
+      throw err
+    }
+    const result = (await response.json()) as {
+      audioUrl: string
+      text: string
+      skipped?: boolean
+      sourceLang?: string
+    }
     const audioUrl = result.audioUrl?.startsWith("http")
       ? result.audioUrl
       : `${baseUrl}${result.audioUrl}`
-    return { audioUrl, text: result.text }
+    return {
+      audioUrl,
+      text: result.text,
+      skipped: Boolean(result.skipped),
+      sourceLang: result.sourceLang,
+    }
   },
   markPlayed: (id) => call("POST", `/messages/${encodeURIComponent(id)}/played`),
   subscribe: (plan) => call("POST", "/subscription", { plan }),
+  getAnalysis: () => call<{ advice: string | null }>("GET", "/analysis"),
   deleteAccount: () => call("DELETE", "/auth/account"),
 }
 
-// ------------------------------------------------------------- sample answers
-
 const pause = () => new Promise((resolve) => setTimeout(resolve, 150))
 
-// The sample backend keeps its own copy, so saving behaves like a real server.
 const sample = {
   records: drinkRecords,
   messages: voiceMessages,
@@ -311,6 +342,11 @@ const mockApi: SuilaApi = {
     )
   },
   subscribe: async () => (await pause(), { isPro: true }),
+  getAnalysis: async () =>
+    (await pause(), {
+      advice:
+        "過去一週喝水節奏大致穩定，上午較常達標；下午容易空一段時間。可以在午休後加一次提醒，並維持你現在的每日目標。",
+    }),
   async deleteAccount() {
     await pause()
     sample.profile = initialProfile("")
@@ -318,7 +354,6 @@ const mockApi: SuilaApi = {
   },
 }
 
-/** True when the app runs on sample data (no backend address set). */
 export const usingSampleData = baseUrl === ""
 
 export const api: SuilaApi = usingSampleData ? mockApi : httpApi

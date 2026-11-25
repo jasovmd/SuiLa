@@ -142,7 +142,6 @@ def create_code(device_id: str, role: str, consented: bool, ttl: timedelta | Non
 
 
 def current_code(device_id: str, role: str) -> dict | None:
-    """Unused code for this device and role that has not expired yet."""
     with connect() as conn:
         row = conn.execute(
             """
@@ -159,7 +158,6 @@ def current_code(device_id: str, role: str) -> dict | None:
 
 
 def issue_family_code(device_id: str) -> dict:
-    """One family join code per device, reused until it is 24 hours old."""
     existing = current_code(device_id, "family")
     if existing:
         return existing
@@ -167,7 +165,6 @@ def issue_family_code(device_id: str) -> dict:
 
 
 def claim_code(code: str, line_user_id: str) -> str | None:
-    """只用 LINE 傳來的 userId 綁定，不接受呼叫端指定他人。"""
     now = now_utc()
     with connect() as conn:
         row = conn.execute("SELECT * FROM line_codes WHERE code = ?", (code,)).fetchone()
@@ -178,7 +175,6 @@ def claim_code(code: str, line_user_id: str) -> str | None:
                 return None
         except ValueError:
             return None
-        # Family codes stay usable until they expire, so the same code works for 24 hours.
         if row["role"] != "family":
             conn.execute("UPDATE line_codes SET used = 1 WHERE code = ?", (code,))
         conn.execute("DELETE FROM settings WHERE key = ?", (f"line_unbound:{line_user_id}",))
@@ -241,7 +237,6 @@ def is_unbound(line_user_id: str) -> bool:
 
 
 def ensure_self(device_id: str, line_user_id: str, display_name: str = "") -> bool:
-    """Put a previously linked LINE user back, unless they chose to unbind."""
     user = (line_user_id or "").strip()
     if not user or len(user) > 64 or is_unbound(user):
         return False
@@ -313,7 +308,6 @@ def bindings(device_id: str, family_only: bool = False) -> list[dict]:
 
 
 def binding_of(line_user_id: str) -> dict | None:
-    """Return the device binding for a LINE user, if any."""
     with connect() as conn:
         row = conn.execute(
             "SELECT line_user_id, device_id, role, consented FROM line_bindings WHERE line_user_id = ?",
@@ -339,7 +333,6 @@ def status(device_id: str) -> dict:
 
 
 def mark_event(event_id: str) -> bool:
-    """第一次看到回傳 True。重送回傳 False。"""
     if not event_id:
         return True
     with connect() as conn:
@@ -414,7 +407,6 @@ def _put_settings_json(conn, key: str, value) -> None:
 
 
 def list_elders() -> list[dict]:
-    """App accounts that can receive a voice note. Order stays stable."""
     with connect() as conn:
         raw = _settings_json(conn, "elders", [])
     if not isinstance(raw, list):
@@ -460,7 +452,6 @@ def hold_voice(
     audio_bytes: bytes,
     content_type: str,
 ) -> bool:
-    """Keep one voice aside until the sender picks which elder should hear it."""
     if not line_user_id or not message_id or not audio_bytes:
         return False
     path = _write_audio(message_id, audio_bytes, content_type)
@@ -524,7 +515,7 @@ def append_voice_message(
     content_type: str,
     to_uid: str = "",
 ) -> dict | None:
-    """Save a family LINE audio note for the phone app's /messages list."""
+    import base64
     import json
 
     if not message_id or not audio_bytes:
@@ -540,6 +531,9 @@ def append_voice_message(
         "audioPath": str(path.name),
         "toUid": to_uid,
     }
+    if len(audio_bytes) <= 400_000:
+        item["audioBase64"] = base64.b64encode(audio_bytes).decode("ascii")
+        item["audioExt"] = path.suffix.lower() or ".m4a"
     with connect() as conn:
         row = conn.execute(
             "SELECT value FROM settings WHERE key = ?",

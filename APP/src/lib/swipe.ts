@@ -1,12 +1,6 @@
-// Works out which tab a finger on the bottom bar points at. No UI.
 
-/**
- * @param x           finger position, in px
- * @param firstCenter centre of the first tab button, in px
- * @param lastCenter  centre of the last tab button, in px
- * @returns a fractional tab index (1.4 = 40% of the way from tab 1 to tab 2),
- *          never outside 0..count-1
- */
+
+
 export function tabProgress(
   x: number,
   firstCenter: number,

@@ -1,7 +1,7 @@
 import { useT } from "../i18n"
 import { BackIcon } from "./Icons"
 
-/** Floating header of a full-screen view: labeled 返回 button, then the title. */
+
 export function ScreenHeader({
   title,
   onBack,

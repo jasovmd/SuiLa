@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-/** The main action of a full-screen view. Floats above the content at the bottom. */
+
 export function FloatingButton({
   onClick,
   disabled = false,

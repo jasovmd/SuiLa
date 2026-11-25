@@ -1,6 +1,3 @@
-"""Phone app routes over SQLite / LINE store. ESP keeps /api/intake and /api/heartbeat.
-"""
-
 from __future__ import annotations
 
 import json
@@ -77,7 +74,6 @@ def _row_online(row) -> bool:
         age = (now_utc() - parse_iso(row["last_seen_at"])).total_seconds()
     except ValueError:
         return False
-    # A future timestamp is a bad clock, not a live base.
     return 0 <= age <= ONLINE_SECONDS
 
 
@@ -105,9 +101,6 @@ def _record_row(row) -> dict:
         "time": row["measured_at"],
         "amountMl": int(row["estimated_intake_ml"]),
     }
-
-
-# --- records -----------------------------------------------------------------
 
 
 @router.get("/records")
@@ -175,9 +168,6 @@ def delete_record(record_id: str):
     return Response(status_code=204)
 
 
-# --- device ------------------------------------------------------------------
-
-
 @router.get("/device")
 def get_device():
     with connect() as conn:
@@ -189,9 +179,6 @@ def pair_device():
     with connect() as conn:
         _put(conn, f"paired:{DEVICE_ID}", "1")
         return _device_status(conn)
-
-
-# --- settings / profile ------------------------------------------------------
 
 
 class ReminderIn(BaseModel):
@@ -273,7 +260,6 @@ def put_night_mute(body: NightMuteIn):
     }
     with connect() as conn:
         _json_put(conn, "night_mute", data)
-        # Keep LINE quiet hours in sync when that table exists.
         try:
             import store
 
@@ -364,7 +350,6 @@ def _bind_line_self(uid: str, name: str) -> None:
 
 @router.post("/auth/session")
 def post_auth_session(body: AuthSessionIn):
-    """Remember this phone as someone a LINE voice can be sent to."""
     with connect() as conn:
         _put(conn, "auth_uid", body.uid)
         _put(conn, "auth_provider", body.provider)
@@ -384,7 +369,6 @@ def post_auth_session(body: AuthSessionIn):
 
 @router.get("/auth/line/callback")
 def line_login_callback(code: str = "", state: str = "", error: str = ""):
-    """LINE Login redirects here; bounce into the Android app with the auth code."""
     if error or not code:
         target = "com.suila.app://line-login?error=denied"
     else:
@@ -402,7 +386,6 @@ def line_login_callback(code: str = "", state: str = "", error: str = ""):
 
 @router.post("/auth/line")
 def post_auth_line(body: LineAuthIn):
-    """Exchange a LINE Login code for the user's LINE profile, then bind this phone."""
     channel_id, channel_secret = _line_login_channel()
     if not channel_id or not channel_secret:
         raise HTTPException(status_code=503, detail="line login not configured")
@@ -454,7 +437,6 @@ def post_auth_line(body: LineAuthIn):
 
 @router.delete("/auth/account")
 def delete_account():
-    """Remove the signed-in owner. Drink logs and the paired base stay on the device."""
     with connect() as conn:
         conn.execute(
             """
@@ -472,12 +454,15 @@ def delete_account():
 
 @router.get("/profile")
 def get_profile():
+    default = {"name": "", "heightCm": "", "weightKg": "", "conditions": ["none"]}
     with connect() as conn:
-        return _json_get(
-            conn,
-            "profile",
-            {"name": "", "heightCm": "", "weightKg": "", "conditions": ["none"]},
-        )
+        raw = _json_get(conn, "profile", default)
+    if not isinstance(raw, dict):
+        return default
+    out = {**default, **raw}
+    if not isinstance(out.get("conditions"), list) or not out["conditions"]:
+        out["conditions"] = ["none"]
+    return out
 
 
 @router.put("/profile")
@@ -496,9 +481,6 @@ def put_profile(body: ProfileIn, request: Request):
         except Exception:
             pass
     return data
-
-
-# --- family / LINE / messages / pro -----------------------------------------
 
 
 def _line_display_name(user_id: str) -> str:
@@ -570,7 +552,6 @@ class LineRestoreIn(BaseModel):
 
 @router.post("/family/line-restore")
 def line_restore(body: LineRestoreIn):
-    """The phone remembers who was linked, so a restarted server can put them back."""
     try:
         import store
 
@@ -714,25 +695,46 @@ def get_message_audio(message_id: str, lang: str = ""):
 
         file_path = translated_path(safe, target_lang)
         if not file_path.is_file():
+            legacy = VOICE_DIR / f"{safe}.{target_lang}.mp3"
+            file_path = legacy if legacy.is_file() else file_path
+        if not file_path.is_file():
             raise HTTPException(status_code=404, detail="translation missing")
     else:
         with connect() as conn:
             messages = _json_get(conn, "voice_messages", [])
-        path_name = ""
+        item = None
         if isinstance(messages, list):
-            for item in messages:
-                if isinstance(item, dict) and item.get("id") == message_id:
-                    path_name = str(item.get("audioPath") or "")
+            for row in messages:
+                if isinstance(row, dict) and row.get("id") == message_id:
+                    item = row
                     break
-        if not path_name:
-            matches = list(VOICE_DIR.glob(f"{safe}.*")) if VOICE_DIR.exists() else []
-            matches = [p for p in matches if p.suffix.lower() != ".json" and ".zh-" not in p.name and ".en." not in p.name and ".nan-" not in p.name]
-            if not matches:
-                raise HTTPException(status_code=404, detail="not found")
-            file_path = matches[0]
-        else:
+        path_name = str((item or {}).get("audioPath") or "")
+        if path_name:
             file_path = VOICE_DIR / Path(path_name).name
-            if not file_path.is_file():
+        else:
+            matches = list(VOICE_DIR.glob(f"{safe}.*")) if VOICE_DIR.exists() else []
+            matches = [
+                p
+                for p in matches
+                if p.suffix.lower() != ".json"
+                and ".zh-" not in p.name
+                and ".en." not in p.name
+                and ".nan-" not in p.name
+            ]
+            file_path = matches[0] if matches else None
+        if file_path is None or not file_path.is_file():
+            if item and item.get("audioBase64"):
+                import base64
+
+                try:
+                    raw = base64.b64decode(str(item.get("audioBase64") or ""))
+                except Exception as exc:
+                    raise HTTPException(status_code=404, detail="not found") from exc
+                ext = str(item.get("audioExt") or ".m4a")
+                VOICE_DIR.mkdir(parents=True, exist_ok=True)
+                file_path = VOICE_DIR / f"{safe}{ext}"
+                file_path.write_bytes(raw)
+            else:
                 raise HTTPException(status_code=404, detail="not found")
     media = "audio/mp4"
     suffix = file_path.suffix.lower()
@@ -753,20 +755,20 @@ class TranslateIn(BaseModel):
 
 @router.post("/messages/{message_id}/translate")
 def translate_message(message_id: str, body: TranslateIn):
-    """Whisper + translate + TTS. Result is cached on disk for later plays."""
     try:
         from .voice_translate import ensure_translation
 
         result = ensure_translation(message_id, body.lang.strip())
         return result
     except FileNotFoundError as exc:
-        raise HTTPException(status_code=404, detail=str(exc)) from exc
+        raise HTTPException(status_code=404, detail=str(exc) or "audio missing") from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except Exception as exc:
-        raise HTTPException(status_code=502, detail="translate failed") from exc
+        detail = str(exc).strip() or "translate failed"
+        raise HTTPException(status_code=502, detail=detail[:180]) from exc
 
 
 @router.post("/messages/{message_id}/played")
@@ -793,7 +795,6 @@ class SubIn(BaseModel):
 
 @router.post("/subscription")
 def post_subscription(body: SubIn):
-    # No payment yet — flipping the flag is enough for UI unlock.
     with connect() as conn:
         _put(conn, "is_pro", "1")
         _put(conn, "pro_plan", body.plan)
@@ -803,7 +804,12 @@ def post_subscription(body: SubIn):
 @router.get("/analysis")
 def get_analysis():
     report = analyze(DEVICE_ID)
-    advice = report.get("summary") or report.get("message") or None
-    if report.get("status") == "accumulating":
-        advice = None
-    return {"advice": advice}
+    advice = (
+        report.get("ai_advice")
+        or report.get("summary")
+        or report.get("message")
+        or None
+    )
+    if isinstance(advice, str):
+        advice = advice.strip() or None
+    return {"advice": advice, "status": report.get("status")}

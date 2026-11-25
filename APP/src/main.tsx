@@ -14,7 +14,7 @@ async function setupNativeChrome() {
     await StatusBar.setStyle({ style: Style.Dark })
     await StatusBar.setBackgroundColor({ color: "#123d72" })
   } catch {
-    // Status bar may be unavailable in some embeds.
+    
   }
 }
 

@@ -3,12 +3,14 @@ from __future__ import annotations
 from collections import Counter
 from datetime import datetime
 
+from .ai_advice import build_ai_advice
 from .db import connect
 from .timeutil import TAIPEI, day_in_taipei, now_utc, parse_iso
 
 MIN_DAYS = 3
 MIN_EVENTS = 6
 ONLINE_SECONDS = 45
+_USABLE_MODES = frozenset({"real", "manual"})
 
 
 def _median(values: list[float]) -> float:
@@ -32,7 +34,6 @@ def _online(last_seen: str | None, now: datetime) -> bool:
 
 
 def analyze(device_id: str) -> dict:
-    """只使用真實、時間已確認、合理飲水量。資料不夠就明示累積中，不補假結論。"""
     now = now_utc()
     with connect() as conn:
         rows = conn.execute(
@@ -52,7 +53,8 @@ def analyze(device_id: str) -> dict:
     online = _online(hb["last_seen_at"] if hb else None, now)
     usable: list[tuple[datetime, int]] = []
     for row in rows:
-        if row["measurement_mode"] != "real" or not row["time_verified"]:
+        mode = str(row["measurement_mode"] or "")
+        if mode not in _USABLE_MODES or not row["time_verified"]:
             continue
         ml = int(row["estimated_intake_ml"])
         if ml < 5 or ml > 800:
@@ -71,18 +73,29 @@ def analyze(device_id: str) -> dict:
         "message": "資料累積中",
         "days": len(by_day),
         "summary": "",
+        "ai_advice": "",
         "anomalies": [],
         "suggestions": [],
         "online": online,
         "offline_note": "" if online else "設備未同步，不能把缺少紀錄當成沒有喝水。",
         "note": "這是習慣整理，不是疾病診斷，也不會更改飲水目標。",
-        "basis": ["只採用時間已確認的真實紀錄", "天數或筆數不足，所以是資料累積中"],
+        "basis": ["採用時間已確認的真實與手動紀錄", "天數或筆數不足，所以是資料累積中"],
     }
-    today = day_in_taipei(now)
-    compare_days = [d for d in sorted(by_day) if not (d == today and not online)]
+    compare_days = sorted(by_day.keys())
     if len(compare_days) < MIN_DAYS or len(usable) < MIN_EVENTS:
         if not online:
             result["offline_note"] = "設備未同步，今日不列入「沒有喝水」。"
+        facts = {
+            "days": len(by_day),
+            "events": len(usable),
+            "status": "accumulating",
+            "online": online,
+        }
+        ai = build_ai_advice(result, facts)
+        if ai:
+            result["ai_advice"] = ai
+            result["summary"] = ai
+            result["message"] = ai
         return result
 
     totals = {d: sum(ml for _, ml in by_day[d]) for d in compare_days}
@@ -139,10 +152,26 @@ def analyze(device_id: str) -> dict:
             "anomalies": anomalies,
             "suggestions": suggestions,
             "basis": [
-                f"採用 {len(compare_days)} 天、時間已確認的真實紀錄",
+                f"採用 {len(compare_days)} 天、時間已確認的真實與手動紀錄",
                 "已排除模擬、時間未確認與不合理水量",
                 f"近期約 {totals[recent]} mL，過去中位數約 {int(round(history_median))} mL",
             ],
         }
     )
+    facts = {
+        "days": len(compare_days),
+        "events": len(usable),
+        "averageMl": average,
+        "recentMl": totals[recent],
+        "historyMedianMl": int(round(history_median)),
+        "commonHours": [hour for hour, _ in common],
+        "anomalies": anomalies,
+        "online": online,
+        "status": "ok",
+    }
+    ai = build_ai_advice(result, facts)
+    if ai:
+        result["ai_advice"] = ai
+        result["summary"] = ai
+        result["message"] = ai
     return result

@@ -1,8 +1,3 @@
-"""與 SuiLa-ESP/suila/weight_logic.cpp 對應的驗證用複本。
-
-用來在沒有燒錄板子時確認判斷規則；若韌體門檻有改，請同步此檔。
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -184,17 +179,14 @@ def test_800_to_750_once():
     assert any(o.type == Event.BASELINE_SET for o in outs)
     assert logic.state == State.READY
 
-    # 拿起
     assert logic.update(20).type == Event.NONE
     assert logic.state == State.LIFTED
 
-    # 放回 750（含 LIFTED→SETTLING 一次，再穩定 STABLE_NEED 次）
     outs = feed(logic, 750, times=STABLE_NEED + 1)
     intakes = [o for o in outs if o.type == Event.INTAKE]
     assert len(intakes) == 1
     assert abs(intakes[0].intake_ml - 50) < 0.1
 
-    # 同一變化不再記
     outs = feed(logic, 750, times=STABLE_NEED + 1)
     assert all(o.type == Event.NONE for o in outs)
 

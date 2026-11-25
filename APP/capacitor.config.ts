@@ -12,6 +12,10 @@ const config: CapacitorConfig = {
       style: 'DARK',
       backgroundColor: '#123d72',
     },
+    LocalNotifications: {
+      smallIcon: 'ic_stat_suila',
+      iconColor: '#123D72',
+    },
   },
 }
 

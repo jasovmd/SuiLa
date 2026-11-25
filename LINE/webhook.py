@@ -95,7 +95,6 @@ def _handle_pick(user_id: str, choice: int, reply_token: str) -> None:
 
 
 def _ordered_elders(sender_id: str) -> list[dict]:
-    """Put the sender first when they also have the app (LINE Login self)."""
     elders = store.list_elders()
     if not sender_id:
         return elders
@@ -119,7 +118,6 @@ def _handle_audio(user_id: str, message: dict, reply_token: str) -> None:
     message_id, duration_sec, raw, content_type = loaded
     elders = _ordered_elders(user_id)
 
-    # One app user, or the only recipient is myself → no need to ask.
     if len(elders) <= 1:
         to_uid = elders[0]["uid"] if elders else ""
         label = _elder_label(elders[0], 1, user_id) if elders else ""

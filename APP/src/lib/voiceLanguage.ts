@@ -25,7 +25,7 @@ export async function initVoiceLanguage() {
       const legacy = localStorage.getItem("suila-voice-language")
       if (isLanguage(legacy)) current = legacy
     } catch {
-      // ignore
+      
     }
   }
   notify()
@@ -37,7 +37,7 @@ export async function setVoiceLanguage(language: Language) {
   try {
     localStorage.setItem("suila-voice-language", language)
   } catch {
-    // ignore
+    
   }
   notify()
 }
@@ -62,7 +62,7 @@ export function useVoiceLanguage(): Language {
   )
 }
 
-/** Offline reminder cue: system speech in the chosen voice language. */
+
 export function playReminderCue(text: string, language: Language = current) {
   if (!("speechSynthesis" in window)) return
   window.speechSynthesis.cancel()

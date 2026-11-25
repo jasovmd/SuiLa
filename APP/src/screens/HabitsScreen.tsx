@@ -9,14 +9,16 @@ export function HabitsScreen({
   records,
   goalMl,
   advice,
+  adviceLoading = false,
   hasSensitiveCondition,
   onAddReminder,
   onClose,
 }: {
   records: DrinkRecord[]
   goalMl: number
-  /** Analysis text from the backend (and its AI). Null until it sends one. */
+  
   advice: string | null
+  adviceLoading?: boolean
   hasSensitiveCondition: boolean
   onAddReminder: () => void
   onClose: () => void
@@ -29,8 +31,28 @@ export function HabitsScreen({
   const average = Math.round(
     week.reduce((total, day) => total + day.totalMl, 0) / week.length,
   )
-  // Bars are drawn against the larger of the goal and the best day.
+  
   const scale = Math.max(goalMl, ...week.map((day) => day.totalMl))
+
+  const localAdvice =
+    metCount === week.length
+      ? t.habits.adviceAllMet(week.length)
+      : t.habits.adviceMissed(week.length - metCount, week.length, goalMl)
+  
+  const adviceBody =
+    advice ??
+    (adviceLoading ? t.habits.adviceLoading : period ? localAdvice : t.habits.notEnough)
+
+  const adviceCard = (
+    <Card className="advice-card">
+      <p className="card-label">{t.habits.adviceTitle}</p>
+      <p className="habit-body advice-body">{adviceBody}</p>
+      {hasSensitiveCondition && (
+        <p className="health-note">{t.habits.adviceCondition}</p>
+      )}
+      <p className="advice-label">{t.habits.adviceLabel}</p>
+    </Card>
+  )
 
   if (!period) {
     return (
@@ -41,17 +63,7 @@ export function HabitsScreen({
             <p className="card-label">{t.habits.weekTitle}</p>
             <p className="records-empty">{t.habits.notEnough}</p>
           </Card>
-          {/* Too few records for our own sample, but the backend may still have something to say. */}
-          {advice && (
-            <Card className="advice-card">
-              <p className="card-label">{t.habits.adviceTitle}</p>
-              <p className="habit-body">{advice}</p>
-              {hasSensitiveCondition && (
-                <p className="health-note">{t.habits.adviceCondition}</p>
-              )}
-              <p className="advice-label">{t.habits.adviceLabel}</p>
-            </Card>
-          )}
+          {adviceCard}
         </div>
       </section>
     )
@@ -84,7 +96,6 @@ export function HabitsScreen({
                       style={{ width: `${(day.totalMl / scale) * 100}%` }}
                     />
                   </div>
-                  {/* The tick sits after the bar; the slot stays so bars line up. */}
                   <span className="habit-mark">
                     {met && (
                       <>
@@ -125,30 +136,7 @@ export function HabitsScreen({
           </button>
         </Card>
 
-        <Card className="advice-card">
-          <p className="card-label">{t.habits.adviceTitle}</p>
-          {/* shortcut: until the backend sends its analysis, a plain sample built from the owner's own goal. */}
-          <p className="habit-body">
-            {advice ??
-              (metCount === week.length
-                ? t.habits.adviceAllMet(week.length)
-                : t.habits.adviceMissed(week.length - metCount, week.length, goalMl))}
-          </p>
-          {!advice && (
-            <p className="habit-body">
-              {t.habits.adviceTip(
-                t.habits.period(
-                  t.common.clock(period.from, 0),
-                  t.common.clock(period.to, 0),
-                ),
-              )}
-            </p>
-          )}
-          {hasSensitiveCondition && (
-            <p className="health-note">{t.habits.adviceCondition}</p>
-          )}
-          <p className="advice-label">{t.habits.adviceLabel}</p>
-        </Card>
+        {adviceCard}
       </div>
     </section>
   )

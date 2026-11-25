@@ -4,7 +4,7 @@ const KEY = "line.self"
 
 export type SavedLine = { id: string; name: string }
 
-/** Remember the LINE account that finished binding, so the next launch can restore it. */
+
 export async function saveLineSelf(member: { id: string; name?: string }) {
   const id = member.id.trim()
   if (!id || id.startsWith("m-") || id.startsWith("local-")) return

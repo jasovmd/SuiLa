@@ -28,6 +28,7 @@ export function HomeScreen({
   waterPercentage,
   todayRecords,
   newMessageCount,
+  onBrandTap,
   onOpenCalendar,
   onOpenMessages,
   onOpenHabits,
@@ -42,6 +43,7 @@ export function HomeScreen({
   waterPercentage: number
   todayRecords: DrinkRecord[]
   newMessageCount: number
+  onBrandTap?: () => void
   onOpenCalendar: () => void
   onOpenMessages: () => void
   onOpenHabits: () => void
@@ -49,12 +51,12 @@ export function HomeScreen({
   onPair: () => void
 }) {
   const t = useT()
-  // Progress starts at zero and grows to the real value, so a change is seen to happen.
+  
   const [shown, setShown] = useState(0)
   useEffect(() => setShown(waterPercentage), [waterPercentage])
   const goalMet = todayWater >= goalMl
 
-  // The base in as few words as possible: one line when all is well.
+  
   const batteryLow = device.batteryPercent <= lowBatteryPercent
   const status: StatusLine[] = !device.paired
     ? [{ tone: "warn", text: t.home.notPaired }]
@@ -139,6 +141,17 @@ export function HomeScreen({
   return (
     <section className="swipe-page water-page" aria-label={t.home.aria}>
       <div className="hero-blue with-bottle">
+        <button
+          className="hero-brand"
+          type="button"
+          aria-label={t.brand.aria}
+          onClick={onBrandTap}
+        >
+          <span className="hero-brand-name">
+            {t.brand.name}
+            <small>{t.brand.latin}</small>
+          </span>
+        </button>
         <div className="hero-status">{statusLines}</div>
         <div className="hero-head">
           <p className="hero-label">{t.home.todayWater}</p>

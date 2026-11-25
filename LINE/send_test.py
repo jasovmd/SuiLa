@@ -1,5 +1,3 @@
-"""主動發送一則測試通知。不會印出權杖。"""
-
 from __future__ import annotations
 
 import sys

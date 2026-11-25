@@ -112,7 +112,6 @@ def copy_analysis(summary: str) -> str:
 
 
 def run_reminders(device_id: str = "suila-esp32c3-01") -> None:
-    """固定門檻提醒。離線時不把缺少紀錄說成沒喝水。這不是 AI。"""
     prefs = store.get_prefs(device_id)
     if not prefs["enabled"]:
         return

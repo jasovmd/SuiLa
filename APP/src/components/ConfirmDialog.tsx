@@ -1,7 +1,4 @@
-/**
- * Asks before something that cannot be undone. Covers the whole screen with a
- * solid background (no see-through layer) so the question is all there is to read.
- */
+
 export function ConfirmDialog({
   message,
   confirmLabel,
@@ -33,7 +30,6 @@ export function ConfirmDialog({
         >
           {confirmLabel}
         </button>
-        {/* The safe choice gets the focus. */}
         <button
           className="confirm-secondary"
           type="button"

@@ -7,7 +7,7 @@ function clampStep(raw: number, min: number, max: number, step: number) {
   return Math.min(max, Math.max(min, stepped))
 }
 
-/** Horizontal ml slider. Tracks the finger live; commits with onChange on release. */
+
 export function MlSlider({
   value,
   min,

@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  /* Bundled with the app (see main.tsx), so it works without internet. */
+  
   font-family: "Noto Sans TC Variable", "Noto Sans TC", sans-serif;
   color: #234765;
   background: #dbe5f0;
   font-synthesis: none;
   scrollbar-width: none;
 
-  /* Floating layer: the only two shadow levels in the app. */
+  
   --shadow-card: 0 7px 20px rgba(36, 96, 123, 0.07);
   --shadow-float: 0 10px 28px rgba(16, 40, 76, 0.18);
-  /* Gap between a floating bar and the screen edge. */
+  
   --float-gap: 12px;
   --float-header-height: 64px;
   --float-nav-height: 92px;
   --float-overlay-header-height: 76px;
   --float-action-height: 72px;
-  /* Space a full-screen view keeps free for its floating header / button. */
+  
   --float-overlay-top: calc(
     var(--float-overlay-header-height) + var(--float-gap) * 2 +
       env(safe-area-inset-top)
@@ -77,11 +77,9 @@ button:focus-visible {
 }
 
 .topbar {
-  position: absolute;
-  z-index: 10;
-  top: calc(var(--float-gap) + env(safe-area-inset-top));
-  right: var(--float-gap);
-  left: var(--float-gap);
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
   height: var(--float-header-height);
   display: flex;
   align-items: center;
@@ -91,6 +89,38 @@ button:focus-visible {
   border-radius: 20px;
   background: #fff;
   box-shadow: var(--shadow-float);
+}
+
+.hero-brand {
+  display: block;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hero-brand-name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.hero-brand-name small {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0.72;
+}
+
+.water-page > .hero-blue.with-bottle {
+  margin-top: 0;
 }
 
 .brand {
@@ -142,9 +172,8 @@ button:focus-visible {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
-  padding-top: calc(
-    var(--float-header-height) + var(--float-gap) * 2 + env(safe-area-inset-top)
-  );
+  
+  padding-top: var(--float-gap);
   padding-bottom: calc(
     var(--float-nav-height) + var(--float-gap) * 2 + env(safe-area-inset-bottom)
   );
@@ -466,7 +495,6 @@ button:focus-visible {
   }
 }
 
-/* Larger type for senior readability */
 .brand {
   font-size: 26px;
 }
@@ -515,7 +543,6 @@ button:focus-visible {
   font-size: 26px;
 }
 
-/* Refreshing, high-contrast theme for senior users */
 :root {
   color: #17384f;
   background: #edf4f6;
@@ -656,7 +683,6 @@ body {
   background: #fbfdfd;
 }
 
-/* Floating header of a full-screen view */
 .screen-header {
   position: absolute;
   z-index: 2;
@@ -893,7 +919,6 @@ body {
   height: 26px;
 }
 
-/* Confirmation message: floats just below the header */
 .toast {
   position: absolute;
   z-index: 60;
@@ -914,7 +939,6 @@ body {
   display: none;
 }
 
-/* 家人 tab */
 .family-intro-card p {
   margin: 0;
   color: #17384f;
@@ -937,7 +961,6 @@ body {
   font-weight: 500;
 }
 
-/* Voice messages */
 .voice-card {
   padding: 22px;
 }
@@ -1048,7 +1071,6 @@ body {
   line-height: 1;
 }
 
-/* Home: device status, and the calendar button beside the records title */
 .device-status {
   display: flex;
   flex: 0 0 auto;
@@ -1112,7 +1134,6 @@ body {
   height: 30px;
 }
 
-/* Keeps the records title and the calendar button on one line on narrow phones. */
 @media (max-width: 370px) {
   .drink-records-card .recent-records-label {
     font-size: 24px;
@@ -1124,7 +1145,6 @@ body {
   }
 }
 
-/* Drink records */
 .records-empty {
   margin: 12px 0 8px;
   color: #3e596b;
@@ -1175,7 +1195,6 @@ body {
   cursor: pointer;
 }
 
-/* Confirmation question: a solid full-screen layer, nothing see-through */
 .confirm-screen {
   position: fixed;
   z-index: 70;
@@ -1232,7 +1251,6 @@ body {
   background: #fff;
 }
 
-/* Reminder settings */
 .goal-value {
   margin: 6px 0 14px;
   color: #17384f;
@@ -1353,7 +1371,6 @@ body {
   background: #2866be;
 }
 
-/* Base device page and pairing */
 .outline-button.is-wide {
   width: 100%;
   margin-top: 10px;
@@ -1527,10 +1544,8 @@ body {
   height: 64px;
 }
 
-/* Home ring: amount and goal in 毫升 */
-/* Home's floating 手動加水 button sits just above the navigation */
 .floating-action.home-action {
-  /* A white edge keeps it visible while the blue water card scrolls behind it. */
+  
   border: 2px solid #fff;
   bottom: calc(
     var(--float-nav-height) + var(--float-gap) * 2 + env(safe-area-inset-bottom)
@@ -1544,7 +1559,6 @@ body {
   );
 }
 
-/* 手動加水 page: quick amounts */
 .form-label {
   margin: 0;
   color: #2866be;
@@ -1586,7 +1600,6 @@ body {
   background: #2866be;
 }
 
-/* Night mute: the whole row is the switch */
 .switch-row {
   width: 100%;
   flex: 0 0 auto;
@@ -1611,21 +1624,152 @@ body {
   display: block;
 }
 
-/* About page */
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .about-card h2 {
-  margin: 0 0 8px;
-  color: #2866be;
-  font-size: 26px;
+  margin: 0 0 10px;
+  color: var(--blue-deep, #1a4775);
+  font-size: 22px;
   font-weight: 800;
+  letter-spacing: 0.01em;
 }
 
 .about-card p {
   margin: 0;
   color: #17384f;
-  font-size: 22px;
+  font-size: 18px;
+  line-height: 1.55;
 }
 
-/* Calendar */
+.about-feature-list {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  color: #17384f;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.about-feature-list li {
+  position: relative;
+  padding: 10px 0 10px 18px;
+  border-top: 1px solid #e7eef3;
+}
+
+.about-feature-list li:first-child {
+  border-top: 0;
+  padding-top: 2px;
+}
+
+.about-feature-list li::before {
+  content: "";
+  position: absolute;
+  top: 1.15em;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7eb3d8;
+}
+
+.about-contact-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.line-oa-button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 2px;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: #06c755;
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.line-oa-button strong {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.line-oa-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.band-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 20px 22px;
+  text-align: center;
+}
+
+.band-panel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 4px;
+  border-radius: 22px;
+  background: var(--blue-tint, #e8f3fb);
+  color: var(--blue-deep, #1a4775);
+}
+
+.band-panel-icon svg {
+  width: 36px;
+  height: 36px;
+}
+
+.band-panel-name {
+  color: #17384f;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.band-panel-status {
+  margin: 0 0 8px;
+  color: #5b7384;
+  font-size: 16px;
+}
+
+.band-page .band-panel .outline-button.is-wide {
+  margin-top: 4px;
+}
+
+.band-note {
+  margin: 4px 6px 0;
+  color: #7a8f9e;
+  font-size: 14px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.advice-body {
+  min-height: 5.4em;
+}
+
 .month-nav {
   display: grid;
   grid-template-columns: 44px 1fr 44px;
@@ -1776,7 +1920,6 @@ body {
   margin-top: 18px;
 }
 
-/* Habit analysis */
 .pro-tag {
   display: inline-block;
   margin-left: 10px;
@@ -1878,7 +2021,6 @@ body {
   font-size: 22px;
 }
 
-/* Demo panel */
 .demo-hint {
   margin: 0;
   color: #17384f;
@@ -1898,7 +2040,6 @@ body {
   text-align: left;
 }
 
-/* Language switch under 我的 */
 .language-card {
   flex: 0 0 auto;
   padding: 20px 22px;
@@ -1908,14 +2049,12 @@ body {
   margin-top: 10px;
 }
 
-/* Two-button rows: let longer (English) labels wrap instead of overflowing. */
 .stepper-row .outline-button,
 .stepper-row .choice-button {
   padding: 6px 8px;
   line-height: 1.2;
 }
 
-/* Room for longer (English) text on narrow phones */
 .time-row strong {
   white-space: nowrap;
 }
@@ -1930,7 +2069,7 @@ body {
 }
 
 @media (max-width: 370px) {
-  /* The time list and its 新增 button stack instead of sharing one line. */
+  
   .add-time-row {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1945,7 +2084,6 @@ body {
   }
 }
 
-/* Pro page */
 .pro-feature h2 {
   margin: 0 0 8px;
   color: #2866be;
@@ -1978,7 +2116,6 @@ body {
   font-weight: 800;
 }
 
-/* Floating main action of a full-screen view */
 .floating-action {
   position: absolute;
   z-index: 2;
@@ -2020,6 +2157,12 @@ body {
   transform: translateX(-50%);
 }
 
+.bottom-navigation.is-pro {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 8px 8px;
+}
+
 .bottom-navigation button {
   min-width: 0;
   min-height: 72px;
@@ -2028,7 +2171,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 7px 3px;
+  padding: 7px 2px;
   border: 0;
   border-radius: 12px;
   color: #607688;
@@ -2056,16 +2199,6 @@ body {
   background: #e9f1fb;
 }
 
-/* ===== Restyle (2026-11), merged from restyle.css ===== */
-/*
- * Restyle sample (2026-11): the home tab, the top bar, the bottom navigation,
- * the shared card and button styles, and motion.
- *
- * Loaded after index.css, so every rule here replaces the older one of the
- * same name. shortcut: kept as a separate layer while Kyle judges the sample;
- * fold into index.css (and delete what it replaces there) once approved.
- */
-
 :root {
   --ink: #14304d;
   --ink-soft: #4a6178;
@@ -2074,12 +2207,12 @@ body {
   --blue-tint: #e4edfb;
   --paper: #eef3f8;
   --line: #dde6ef;
-  /* Still only two shadow levels: resting cards, and things that float. */
+  
   --shadow-card: 0 1px 2px rgba(20, 48, 77, 0.04), 0 8px 24px rgba(20, 48, 77, 0.06);
   --shadow-float: 0 2px 4px rgba(20, 48, 77, 0.06), 0 12px 32px rgba(20, 48, 77, 0.16);
   --float-header-height: 60px;
   --float-nav-height: 88px;
-  /* Quick start, soft landing. Used for everything that moves. */
+  
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
 
   color: var(--ink);
@@ -2103,9 +2236,6 @@ input:focus-visible {
   outline-offset: 3px;
 }
 
-/* ---- Shell ---- */
-
-/* Side padding moves onto each page so pages slide edge to edge when swiped. */
 .page {
   padding-right: 0;
   padding-left: 0;
@@ -2141,9 +2271,6 @@ input:focus-visible {
   font-size: 17px;
 }
 
-/* ---- Shared pieces ---- */
-
-/* Cards: no outline. Space and one soft shadow separate them. */
 .info-card {
   padding: 22px;
   border: 0;
@@ -2157,7 +2284,6 @@ input:focus-visible {
   font-weight: 700;
 }
 
-/* Secondary actions: a pale-blue pill, so they read as buttons without outlines. */
 .outline-button,
 .edit-button,
 .calendar-button {
@@ -2198,8 +2324,6 @@ button:active:not(:disabled) {
   transform: scale(0.97);
 }
 
-/* ---- Home ---- */
-
 .device-status {
   flex-flow: row wrap;
   gap: 6px 18px;
@@ -2220,7 +2344,6 @@ button:active:not(:disabled) {
   height: 22px;
 }
 
-/* The new-messages row: pale blue, so it reads as news, not as another card. */
 .water-page > .my-menu-row {
   min-height: 64px;
   padding: 12px 20px;
@@ -2276,8 +2399,6 @@ button:active:not(:disabled) {
   font-weight: 800;
 }
 
-/* ---- Bottom navigation ---- */
-
 .bottom-navigation {
   border: 0;
   border-radius: 28px;
@@ -2298,13 +2419,16 @@ button:active:not(:disabled) {
   font-size: 16px;
 }
 
-/* The highlight is one pill that travels between tabs, also under the finger. */
+.bottom-navigation.is-pro button span {
+  font-size: 14px;
+}
+
 .nav-indicator {
   position: absolute;
   top: 8px;
   bottom: 8px;
   left: 10px;
-  /* one of three columns: bar width minus its side padding and the two gaps */
+  
   width: calc((100% - 20px - 16px) / 3);
   border-radius: 20px;
   background: var(--blue-tint);
@@ -2312,15 +2436,17 @@ button:active:not(:disabled) {
   transition: transform 420ms var(--ease-out);
 }
 
-/* ---- Motion ---- */
+.bottom-navigation.is-pro .nav-indicator {
+  left: 8px;
+  width: calc((100% - 16px - 12px) / 4);
+  transform: translateX(calc(var(--nav-progress, 0) * (100% + 4px)));
+}
 
-/* Tab pages slide to the chosen tab (--page). */
 .swipe-track {
   transform: translateX(calc(var(--page, 0) * -100%));
   transition: transform 420ms var(--ease-out);
 }
 
-/* A finger sliding along the bottom bar changes tab; the bar must not scroll or zoom. */
 .bottom-navigation {
   touch-action: none;
 }
@@ -2335,7 +2461,6 @@ button:active:not(:disabled) {
   transition: none;
 }
 
-/* The home button belongs to the first tab: it fades and sinks as that tab leaves. */
 .floating-action.home-action {
   opacity: clamp(0, calc(1 - var(--nav-progress, 0) * 2), 1);
   translate: 0 calc(clamp(0, var(--nav-progress, 0), 1) * 28px);
@@ -2349,7 +2474,6 @@ button:active:not(:disabled) {
   pointer-events: none;
 }
 
-/* Full-screen views slide in from the right and back out. */
 @keyframes screen-in {
   from {
     transform: translateX(100%);
@@ -2395,7 +2519,6 @@ button:active:not(:disabled) {
   animation: pop-in 260ms var(--ease-out);
 }
 
-/* The confirmation message eases in, stays, and eases out over its four seconds. */
 @keyframes toast-life {
   0% {
     opacity: 0;
@@ -2419,7 +2542,6 @@ button:active:not(:disabled) {
   animation: toast-life 4s var(--ease-out) both;
 }
 
-/* Reduce-motion phones: things change state without travelling. */
 @media (prefers-reduced-motion: reduce) {
   .settings-screen,
   .calendar-screen,
@@ -2435,10 +2557,6 @@ button:active:not(:disabled) {
   }
 }
 
-/* =====================================================================
- * Warm palette and the Blue top home (picked by Kyle from four versions).
- * ===================================================================== */
-
 :root {
   --ink: #1f2d3d;
   --ink-soft: #57606b;
@@ -2452,9 +2570,8 @@ button:active:not(:disabled) {
   --amber-ink: #85520a;
   --shadow-card: 0 1px 2px rgba(70, 50, 25, 0.05), 0 8px 24px rgba(70, 50, 25, 0.07);
   --shadow-float: 0 2px 4px rgba(70, 50, 25, 0.07), 0 12px 32px rgba(70, 50, 25, 0.16);
-  --page-top: calc(
-    var(--float-header-height) + var(--float-gap) * 2 + env(safe-area-inset-top)
-  );
+  
+  --page-top: calc(var(--float-gap) + env(safe-area-inset-top));
   --page-pad: 18px;
 
   background: #ebe4d9;
@@ -2482,8 +2599,6 @@ body {
 .status-line.is-warn {
   color: var(--coral-ink);
 }
-
-/* ---- Shared home pieces ---- */
 
 .amount {
   display: flex;
@@ -2563,7 +2678,6 @@ body {
   flex: 0 0 auto;
 }
 
-/* Weekly sneak peek: free for everyone, the full analysis is Pro. */
 .week-peek {
   width: 100%;
   display: block;
@@ -2663,15 +2777,13 @@ body {
   font-weight: 700;
 }
 
-/* ---- Home: one big blue area behind the header ---- */
-
 .hero-blue {
   flex: 0 0 auto;
   margin: calc(-1 * var(--page-top)) calc(-1 * var(--page-pad)) 4px;
   padding: calc(var(--page-top) + 6px) calc(var(--page-pad) + 6px) 26px;
   border-radius: 0 0 34px 34px;
   color: #fff;
-  /* The deeper brand blue: white key numbers reach 8.1:1 (the brand blue gives 5.6:1). */
+  
   background: var(--blue-deep);
 }
 
@@ -2688,7 +2800,6 @@ body {
   color: #fff;
 }
 
-/* The icons' inner tick and "!" are drawn in white; on blue they need the blue instead. */
 .hero-blue .status-line svg path:last-child {
   stroke: var(--blue-deep);
 }
@@ -2712,14 +2823,11 @@ body {
   }
 }
 
-/* Language buttons: each name stays on one line, even on 320px phones. */
 .language-card .choice-button {
   padding: 0 4px;
   font-size: 20px;
   white-space: nowrap;
 }
-
-/* ---- The glowing water bottle (home and 手動加水) ---- */
 
 .water-bottle {
   width: 104px;
@@ -2751,7 +2859,6 @@ body {
   stroke-linecap: round;
 }
 
-/* The water level rises smoothly; the waves never stop moving. */
 .bottle-water {
   transition: transform 1100ms var(--ease-out);
 }
@@ -2776,8 +2883,6 @@ body {
     transform: translateX(-140px);
   }
 }
-
-/* ---- Home: the bottle switch and the bottle beside the numbers ---- */
 
 .hero-head {
   display: flex;
@@ -2862,15 +2967,13 @@ body {
   }
 }
 
-/* ---- 手動加水: a dark, glowing page ---- */
-
 .extra-water-screen.is-techy {
   color: #e6f4ff;
   background: radial-gradient(120% 70% at 50% 25%, #12345e 0%, #0a1830 55%, #070f1f 100%);
 }
 
 .is-techy .water-cup-area {
-  /* The bottle and readout are taller than the old cup: never squeeze them under the card. */
+  
   flex: 0 0 auto;
   min-height: 0;
   padding-bottom: 18px;
@@ -2990,8 +3093,6 @@ body {
   }
 }
 
-/* ---- SuiLa Premium: plans, active state, analysis ---- */
-
 .plan-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3047,8 +3148,6 @@ body {
   font-weight: 700;
 }
 
-/* ---- 家人 and 我的: a shorter blue band behind the header ---- */
-
 .tab-band {
   padding-bottom: 22px;
 }
@@ -3065,8 +3164,6 @@ body {
   font-size: 18px;
   font-weight: 700;
 }
-
-/* ---- 我的: rows grouped into cards, each with a coloured icon ---- */
 
 .menu-group {
   flex: 0 0 auto;
@@ -3146,8 +3243,6 @@ body {
   box-shadow: var(--shadow-float);
 }
 
-/* ---- 家人 ---- */
-
 .social-page > .my-menu-row,
 .line-connections-card {
   border: 0;
@@ -3166,8 +3261,6 @@ body {
 .person-avatar {
   box-shadow: none;
 }
-
-/* ---- Full-screen views: the same warm paper and borderless cards ---- */
 
 .settings-screen,
 .calendar-screen {
@@ -3211,8 +3304,6 @@ body {
   background: var(--green-tint);
 }
 
-/* ---- Loading, and the first connection failing ---- */
-
 .load-screen {
   align-items: center;
   justify-content: center;
@@ -3242,8 +3333,6 @@ body {
 .load-screen .outline-button {
   min-width: 180px;
 }
-
-/* ---- Liquid Fill loader ---- */
 
 .liquid-fill {
   display: grid;
@@ -3340,8 +3429,6 @@ body {
     transform: translate3d(0, 36px, 0);
   }
 }
-
-/* ---- Auth / onboarding ---- */
 
 .auth-screen {
   --auth-h: 100dvh;
@@ -4074,9 +4161,6 @@ body {
   }
 }
 
-/* ---- The confirmation message makes room instead of covering the page ---- */
-
-/* --toast-space is set by the Toast component to the message's own height. */
 .toast {
   top: var(--page-top);
 }
@@ -4096,6 +4180,11 @@ body {
   transition: padding-top 300ms var(--ease-out), margin-top 300ms var(--ease-out);
 }
 
+.swipe-page.water-page > .hero-blue {
+  margin-top: calc(-1 * (var(--page-top) + var(--toast-space, 0px)));
+  padding-top: calc(var(--page-top) + var(--toast-space, 0px) + 10px);
+}
+
 .settings-content,
 .calendar-content,
 .extra-water-content {
@@ -4113,7 +4202,6 @@ body {
   }
 }
 
-/* —— In-app picker sheet (no native system dropdown) —— */
 .app-select {
   width: 100%;
 }

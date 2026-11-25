@@ -1,19 +1,16 @@
 import { useId } from "react"
 
-// The bottle outline, drawn once and reused for the clip, the glass and the edge.
+
 const bottlePath =
   "M56 10 H84 V34 C84 46 122 50 122 76 V212 Q122 228 106 228 H34 Q18 228 18 212 V76 C18 50 56 46 56 34 Z"
-// The water can rise from the bottom (y 228) to the shoulder (y 60).
+
 const bottomY = 228
 const fullHeight = 168
-// A wave twice as wide as the bottle, so sliding it sideways loops seamlessly.
+
 const wavePath =
   "M0 8 Q35 0 70 8 T140 8 T210 8 T280 8 V260 H0 Z"
 
-/**
- * A glowing bottle whose water rises to `level` (0 to 1) with moving waves.
- * Purely a picture: the amount is always also given in words next to it.
- */
+
 export function WaterBottle({
   level,
   className = "",
@@ -21,7 +18,7 @@ export function WaterBottle({
   level: number
   className?: string
 }) {
-  // Several bottles can be on screen at once; each needs its own clip and gradient.
+  
   const id = useId().replace(/:/g, "")
   const top = bottomY - Math.max(0, Math.min(1, level)) * fullHeight
 

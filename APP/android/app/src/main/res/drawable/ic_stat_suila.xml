@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status-bar notification icon: white silhouette of the SuiLa water drop. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="32"
+    android:viewportHeight="32">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M16,4.8C16,4.8 8.2,13.2 8.2,19.2a7.8,7.8 0,1,0 15.6,0C23.8,13.2 16,4.8 16,4.8Z" />
+</vector>

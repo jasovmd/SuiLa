@@ -7,11 +7,7 @@ import { ScreenHeader } from "../components/ScreenHeader"
 import { freeFamilyLimit, premiumPlans, type PremiumPlan } from "../data/mock"
 import { useT } from "../i18n"
 
-/**
- * What SuiLa Premium adds, and a pretend way to switch to it.
- * shortcut: no real payment; onSubscribe only flips the demo state. Connect
- * to the backend's subscription call when it exists.
- */
+
 export function ProScreen({
   isPro,
   onSubscribe,

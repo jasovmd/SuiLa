@@ -1,11 +1,11 @@
-// Calculations behind the habit analysis page. No UI, no text.
+
 
 type Drink = { time: string; amountMl: number }
 
 export type DayTotal = { date: Date; totalMl: number }
 export type Period = { from: number; to: number }
 
-/** Parts of the waking day (24-hour clock) the analysis compares. */
+
 export const dayPeriods: Period[] = [
   { from: 6, to: 9 },
   { from: 9, to: 12 },
@@ -20,7 +20,7 @@ const startOfDay = (date: Date) =>
 const daysBefore = (today: Date, days: number) =>
   new Date(today.getFullYear(), today.getMonth(), today.getDate() - days)
 
-/** Drinks from the seven full days before `today` (today is left out: it is not over yet). */
+
 const lastWeek = (records: Drink[], today: Date) => {
   const from = daysBefore(today, 7).getTime()
   const to = startOfDay(today).getTime()
@@ -30,7 +30,7 @@ const lastWeek = (records: Drink[], today: Date) => {
   })
 }
 
-/** Total per day for the seven full days before `today`, oldest first. */
+
 export function lastSevenDays(records: Drink[], today: Date): DayTotal[] {
   const week = lastWeek(records, today)
   return Array.from({ length: 7 }, (_, index) => {
@@ -45,10 +45,7 @@ export function lastSevenDays(records: Drink[], today: Date): DayTotal[] {
   })
 }
 
-/**
- * The part of the day with the fewest drinks per hour over the last seven
- * full days, or null when there are no drinks at all to judge from.
- */
+
 export function forgetfulPeriod(records: Drink[], today: Date): Period | null {
   const week = lastWeek(records, today)
   if (week.length === 0) return null

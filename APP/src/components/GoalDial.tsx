@@ -6,7 +6,7 @@ import { MlSlider } from "./MlSlider"
 const wavePath =
   "M0 10 Q30 0 60 10 T120 10 T180 10 T240 10 V160 H0 Z"
 
-/** Circular water display + horizontal slider. Dragging stays on-finger; water eases after release. */
+
 export function GoalDial({
   value,
   formatLabel,

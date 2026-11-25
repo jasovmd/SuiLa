@@ -1,10 +1,10 @@
-// 閩南語（台語漢字口語）介面文字, including aria labels,
-// mock names, dates, times and units. Components never contain text.
+
+
 
 const pad2 = (value: number) => String(value).padStart(2, "0")
 
-// shortcut: anything not from today is labelled 昨天; the mock data only
-// covers two days. Needs real dates once older items are shown.
+
+
 const clock = (hour: number, minute: number) => {
   const period =
     hour < 6 ? "凌晨" : hour < 12 ? "上午" : hour === 12 ? "中午" : "下午"
@@ -29,6 +29,7 @@ export const nanTW = {
   nav: {
     aria: "主要分頁",
     water: "飲水",
+    band: "手環",
     family: "厝邊家人",
     my: "我的",
     newMessages: (count: number) => `${count} 則新留言`,
@@ -189,10 +190,11 @@ export const nanTW = {
     nightMute: "暗暝靜音",
     device: "底座",
     habits: "習慣分析",
+    band: "手環",
     proTag: "Premium",
     about: "關於阮",
     proTitle: "升級水啦 Premium",
-    proSubtitle: "開習慣分析、閣加家人",
+    proSubtitle: "開 AI 分析、手環佮閣加家人",
     freePlan: "免費版",
     settings: "設置",
     language: "介面話語",
@@ -220,6 +222,8 @@ export const nanTW = {
     translated: "翻譯",
     translating: "當咧翻譯…",
     translateFailed: "翻譯失敗，請閣試看覓",
+    translateBusy: "翻譯服務當咧忙，請等一下閣試",
+    playsInVoiceLang: "語音語言相同就播原音；無仝才翻譯。",
   },
   reminders: {
     title: "提醒設定",
@@ -297,7 +301,8 @@ export const nanTW = {
     forgetBody: "過去 7 天，這個時段的喝水紀錄最少。",
     addReminder: "新增提醒時間",
     notEnough: "紀錄還不夠，過幾天再來看看。",
-    adviceTitle: "分析建議",
+    adviceTitle: "AI 完整分析",
+    adviceLoading: "當咧幫你整理分析…",
     adviceLabel: "僅供提醒，不是醫療建議。",
     adviceMissed: (missed: number, days: number, goal: number) =>
       `過去 ${days} 天，有 ${missed} 天沒有達到你自己設定的目標（${goal} 毫升）。`,
@@ -434,10 +439,31 @@ export const nanTW = {
     savedToast: "已儲存夜間靜音設定",
   },
   about: {
-    title: "關於我們",
-    description:
-      "水啦是放在水瓶下面的智慧底座，搭配手機 App 使用。喝完水把水瓶放回去，它會自動記下喝了多少；太久沒喝水時，會用柔和的燈光提醒。",
+    title: "關於阮",
+    featuresTitle: "水啦會當做啥物",
+    features: [
+      "智慧底座自動記每一次喝水量",
+      "手機看今仔日進度佮過去紀錄",
+      "提醒佮暗暝靜音，免半暝吵著",
+      "家人透過 LINE 傳語音關心",
+      "Premium：AI 習慣分析佮手環連結",
+    ],
+    contactTitle: "聯絡阮",
+    contactBody: "若有問題抑是想了解閣較濟，歡迎加入水啦 LINE 官方帳號。",
+    lineButton: "加入 LINE 官方帳號",
     demoTitle: "課程專題示範版",
-    demoBody: "這是創業課程的專題作品，畫面中的資料都是示範用的。",
+    demoBody: "這是創業課程的專題作品，畫面中的資料攏是示範用的。",
+  },
+  band: {
+    title: "手環",
+    heroBody: "連上手環了後，會依手環功能提醒你，親像心跳傷過緊、血氧傷低。",
+    deviceName: "藍牙手環",
+    idle: "猶未連接",
+    scanning: "搜尋中…",
+    linked: "已連接",
+    linkedName: (name: string) => `目前連接：${name}`,
+    connect: "連接手環",
+    disconnect: "解除連接",
+    note: "目前是示範連線，真正同步後壁才會開放。",
   },
 }

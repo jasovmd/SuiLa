@@ -47,7 +47,7 @@ export async function initUiLanguage() {
       const legacy = localStorage.getItem(LEGACY_KEY)
       if (isLanguage(legacy)) current = legacy
     } catch {
-      // ignore
+      
     }
   }
   notify()
@@ -59,7 +59,7 @@ export async function setLanguage(language: Language) {
   try {
     localStorage.setItem(LEGACY_KEY, language)
   } catch {
-    // ignore
+    
   }
   notify()
 }

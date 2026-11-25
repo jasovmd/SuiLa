@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 
-/** The white rounded card used across the app. */
+
 export function Card({
   className = "",
   children,

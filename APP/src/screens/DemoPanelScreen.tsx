@@ -6,7 +6,7 @@ import { useT } from "../i18n"
 export type DemoData = "normal" | "dayOne"
 export type DemoDevice = "connected" | "offline" | "unpaired"
 
-/** One group of either/or choices. The current one is filled in and ticked. */
+
 function Choices<Value extends string | boolean>({
   label,
   value,
@@ -42,10 +42,7 @@ function Choices<Value extends string | boolean>({
   )
 }
 
-/**
- * Presenter-only controls for showing each state live. Opened by tapping the
- * app name five times; nothing in the normal UI leads here.
- */
+
 export function DemoPanelScreen({
   data,
   device,

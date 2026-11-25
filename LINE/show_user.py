@@ -1,5 +1,3 @@
-"""印出最近一次傳訊的 LINE userId，方便填入 LINE_TEST_USER_ID。"""
-
 from __future__ import annotations
 
 import sys

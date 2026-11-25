@@ -22,7 +22,6 @@ export function FamilyScreen({
   onInvite,
   onRemoveMember,
   onPlay,
-  onPlayTranslated,
   translatingId,
   onStop,
 }: {
@@ -39,7 +38,6 @@ export function FamilyScreen({
   onInvite: () => void
   onRemoveMember: (id: string) => void
   onPlay: (message: VoiceMessage) => void
-  onPlayTranslated: (message: VoiceMessage) => void
   translatingId: string | null
   onStop: () => void
 }) {
@@ -65,7 +63,7 @@ export function FamilyScreen({
   const nameOf = (id: string) => {
     const person = personOf(id)
     const member = members.find((item) => item.id === id)
-    // Self is just the LINE / profile display name — no 「本人」 prefix.
+    
     if (member?.relation === "本人") return person.name || t.family.relations["本人"] || "我"
     return person.relation
       ? t.family.personLabel(person.relation, person.name)
@@ -164,11 +162,13 @@ export function FamilyScreen({
 
       <Card className="voice-card">
         <p className="card-label">{t.family.voiceTitle}</p>
+        <p className="field-hint">{t.voicePlay.playsInVoiceLang}</p>
         {messages.length === 0 ? (
           <p className="records-empty">{t.family.noMessages}</p>
         ) : (
           messages.map((message) => {
-            const playing = playingId === message.id
+            const busy = translatingId === message.id
+            const playing = playingId === message.id || playingId === `${message.id}-tr`
             const sender = nameOf(message.from)
             const date = new Date(message.time)
             return (
@@ -177,23 +177,20 @@ export function FamilyScreen({
                   <button
                     className="play-button"
                     type="button"
+                    disabled={busy}
                     aria-label={
                       playing ? t.family.stopAria(sender) : t.family.playAria(sender)
                     }
                     onClick={() => (playing ? onStop() : onPlay(message))}
                   >
-                    {playing ? <StopIcon /> : <PlayIcon />}
-                    {playing ? t.family.stop : t.voicePlay.original}
-                  </button>
-                  <button
-                    className="play-button is-secondary"
-                    type="button"
-                    disabled={translatingId === message.id}
-                    onClick={() => onPlayTranslated(message)}
-                  >
-                    {translatingId === message.id
-                      ? t.voicePlay.translating
-                      : t.voicePlay.translated}
+                    {busy ? (
+                      t.voicePlay.translating
+                    ) : (
+                      <>
+                        {playing ? <StopIcon /> : <PlayIcon />}
+                        {playing ? t.family.stop : t.family.play}
+                      </>
+                    )}
                   </button>
                 </div>
                 <div className="voice-info">

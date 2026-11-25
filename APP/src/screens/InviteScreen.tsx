@@ -3,16 +3,13 @@ import { FloatingButton } from "../components/FloatingButton"
 import { ScreenHeader } from "../components/ScreenHeader"
 import { useT } from "../i18n"
 
-/**
- * Premium only: how another family member joins through LINE.
- * The backend makes the invite link; the share button waits until it has one.
- */
+
 export function InviteScreen({
   link,
   onShared,
   onClose,
 }: {
-  /** Null while the backend is still making the link. */
+  
   link: string | null
   onShared: (message: string) => void
   onClose: () => void
@@ -30,7 +27,7 @@ export function InviteScreen({
       await navigator.clipboard.writeText(link)
       onShared(t.invite.copiedToast)
     } catch {
-      // Cancelled by the user, or sharing is not allowed here: say so plainly.
+      
       onShared(t.invite.failedToast)
     }
   }

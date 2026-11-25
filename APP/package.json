@@ -10,6 +10,7 @@
     "build:android": "vite build && npx cap sync android",
     "open:android": "npx cap open android",
     "apk:debug": "powershell -ExecutionPolicy Bypass -File ./scripts/build-apk.ps1",
+    "i18n:sync": "node scripts/i18n-sync.mjs",
     "format": "oxfmt",
     "test": "node src/lib/habits.test.ts && node src/lib/swipe.test.ts"
   },

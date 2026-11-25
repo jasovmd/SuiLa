@@ -45,7 +45,6 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "",
 }
 
-/** True when Firebase web config is present; otherwise local OTP/Google demo is used. */
 export function isFirebaseConfigured() {
   return Boolean(
     firebaseConfig.apiKey &&
@@ -118,7 +117,6 @@ export async function clearOnboarding() {
   await Preferences.remove({ key: ONBOARD_KEY })
 }
 
-/** Removes this login from the phone. Firebase deletion needs a recent sign-in. */
 export async function deleteLocalAccount() {
   const firebaseAuth = ensureFirebase()
   const current = firebaseAuth?.currentUser
@@ -126,7 +124,6 @@ export async function deleteLocalAccount() {
     try {
       await deleteUser(current)
     } catch {
-      // The phone session is still cleared below.
     }
   }
   await signOut()
@@ -152,7 +149,6 @@ function randomOtp() {
   return String(Math.floor(100000 + Math.random() * 900000))
 }
 
-/** Ensure a hidden reCAPTCHA host exists for Firebase phone auth on web. */
 function ensureRecaptchaHost() {
   let host = document.getElementById("suila-recaptcha")
   if (!host) {
@@ -181,7 +177,6 @@ export async function signInWithGoogle(): Promise<AuthSession> {
     return session
   }
 
-  // Local / demo path when Firebase is not configured yet.
   const session: AuthSession = {
     uid: `google-local-${Date.now()}`,
     provider: "google",
@@ -197,7 +192,6 @@ export function isLineLoginConfigured() {
   return Boolean(LINE_CHANNEL_ID && LINE_REDIRECT_URI.startsWith("http"))
 }
 
-/** Open LINE Login. Completes when the app receives com.suila.app://line-login?code=... */
 export async function signInWithLine(): Promise<AuthSession> {
   if (!isLineLoginConfigured()) {
     const session: AuthSession = {
@@ -241,12 +235,10 @@ export async function signInWithLine(): Promise<AuthSession> {
       try {
         await Browser.close()
       } catch {
-        // Already closed.
       }
       try {
         await sub?.remove()
       } catch {
-        // ignore
       }
       if (error || !session) reject(error ?? new Error("line_failed"))
       else resolve(session)
@@ -320,7 +312,6 @@ export async function sendPhoneCode(
       try {
         recaptcha.clear()
       } catch {
-        // ignore
       }
       recaptcha = null
     }

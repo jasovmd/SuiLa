@@ -1,4 +1,3 @@
-# Build the Capacitor Android debug APK and copy it to SuiLa/APK.
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root

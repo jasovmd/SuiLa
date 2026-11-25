@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 
-// Real messages play their recording (audioUrl from the backend). Sample
-// messages have no recording, so the browser's built-in voice reads them.
+
+
 export function useVoicePlayer() {
   const [playingId, setPlayingId] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
@@ -30,7 +30,7 @@ export function useVoicePlayer() {
       audio.current = player
       player.onended = done
       player.onerror = done
-      // A blocked or broken recording ends the "playing" state instead of hanging.
+      
       player.play().catch(done)
       return
     }
@@ -42,12 +42,12 @@ export function useVoicePlayer() {
       utterance.onerror = done
       window.speechSynthesis.speak(utterance)
     }
-    // Some browsers never report the end of speech (or cannot speak at all),
-    // so the button always resets on its own.
+    
+    
     timer.current = window.setTimeout(done, (durationSec + (canSpeak ? 5 : 0)) * 1000)
   }
 
-  // Stop talking if the app goes away mid-message.
+  
   useEffect(() => stop, [])
 
   return { playingId, play, stop }

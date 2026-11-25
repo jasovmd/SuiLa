@@ -3,10 +3,7 @@ import { useId } from "react"
 const wavePath =
   "M0 10 Q30 0 60 10 T120 10 T180 10 T240 10 V160 H0 Z"
 
-/**
- * Circular liquid-fill loader. Pass progress 0–100 for determinate fill,
- * or omit for a looping fill animation.
- */
+
 export function LiquidFillLoader({
   label,
   progress,

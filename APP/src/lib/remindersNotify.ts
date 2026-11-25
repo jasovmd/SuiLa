@@ -7,6 +7,10 @@ const PROGRESS_KEY = "suila.push.progressDay"
 const FIXED_ID_BASE = 4100
 const PROGRESS_ID = 4190
 
+const SMALL_ICON = "ic_stat_suila"
+const LARGE_ICON = "ic_launcher_foreground"
+const ICON_COLOR = "#123D72"
+
 export function inQuietHours(hhmm: string, night: NightMute): boolean {
   if (!night.enabled) return false
   const { start, end } = night
@@ -60,7 +64,6 @@ async function ensurePermission(): Promise<boolean> {
   }
 }
 
-/** Schedule fixed reminder times for today + tomorrow (skips night mute). */
 export async function syncReminderNotifications(options: {
   times: string[]
   night: NightMute
@@ -82,6 +85,9 @@ export async function syncReminderNotifications(options: {
     id: number
     title: string
     body: string
+    smallIcon: string
+    largeIcon: string
+    iconColor: string
     schedule: { at: Date; allowWhileIdle: true }
   }[] = []
 
@@ -96,6 +102,9 @@ export async function syncReminderNotifications(options: {
         id: fixedId(dayOffset, parsed.hour, parsed.minute),
         title: options.title,
         body: options.body,
+        smallIcon: SMALL_ICON,
+        largeIcon: LARGE_ICON,
+        iconColor: ICON_COLOR,
         schedule: { at, allowWhileIdle: true },
       })
     }
@@ -106,7 +115,6 @@ export async function syncReminderNotifications(options: {
   }
 }
 
-/** One progress nudge per day when afternoon intake is behind pace. */
 export async function maybeProgressNotification(options: {
   totalMl: number
   goalMl: number
@@ -135,6 +143,9 @@ export async function maybeProgressNotification(options: {
         id: PROGRESS_ID,
         title: options.title,
         body: options.body(options.totalMl, options.goalMl),
+        smallIcon: SMALL_ICON,
+        largeIcon: LARGE_ICON,
+        iconColor: ICON_COLOR,
         schedule: { at: new Date(Date.now() + 1_500), allowWhileIdle: true },
       },
     ],

@@ -59,7 +59,6 @@ def push_line(text: str, to: str | None = None) -> bool:
 
 
 def fetch_profile(user_id: str) -> str:
-    """LINE display name for a user who has talked to the official account."""
     token = _token()
     uid = (user_id or "").strip()
     if not token or not uid:
@@ -78,7 +77,6 @@ def fetch_profile(user_id: str) -> str:
 
 
 def fetch_message_content(message_id: str) -> tuple[bytes, str] | None:
-    """Download binary content for a LINE message (audio / image / file)."""
     token = _token()
     mid = (message_id or "").strip()
     if not token or not mid:
